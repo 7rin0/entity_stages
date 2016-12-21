@@ -1,0 +1,7 @@
+entity_stages.default.routing:
+  path: '/admin/config/entity_stages/administration'
+  defaults:
+    _title: 'Entity Stages - Administration'
+    _controller: '\Drupal\entity_stages\Controller\EntityStagesController::indexAction'
+  requirements:
+    _permission: 'administer'
