@@ -1,0 +1,7 @@
+# Multisite Services.
+services:
+  # Add subscriber.
+  entity_stages.core.subscriber:
+    class: Drupal\entity_stages\Event\EntityStagesSubscriber
+    tags:
+      - { name: event_subscriber }
