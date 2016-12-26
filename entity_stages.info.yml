@@ -1,5 +1,5 @@
 type: module
 name: Entity Stages
-description: Provides Multisite Account/User/Session features synchronization as Login/Logout on shared databases or users.
+description: Provides Content Stages Management by Role.
 core: 8.x
-package: "Multisite Database"
+package: "Entity Stages"
