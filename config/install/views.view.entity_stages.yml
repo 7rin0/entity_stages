@@ -2,10 +2,11 @@ langcode: en
 status: true
 dependencies:
   config:
-    - user.role.admin_portail
     - user.role.administrator
   module:
     - user
+    - diff
+    - entity_stages
 id: entity_stages
 label: 'Entity Stages Moderation'
 module: views
@@ -26,7 +27,6 @@ display:
         options:
           role:
             administrator: administrator
-            admin_portail: admin_portail
       cache:
         type: tag
         options: {  }
