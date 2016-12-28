@@ -1,6 +1,6 @@
 type: module
 name: Entity Stages
-description: Provides Content Stages Management by Role.
+description: Provides Content Stages Management by Role. Administer, moderate and validation pending content modifications.
 dependencies:
   - user
   - node
