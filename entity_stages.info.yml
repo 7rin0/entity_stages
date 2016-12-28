@@ -2,6 +2,8 @@ type: module
 name: Entity Stages
 description: Provides Content Stages Management by Role.
 dependencies:
+  - user
+  - node
   - diff
 core: 8.x
 package: "Entity Stages"
