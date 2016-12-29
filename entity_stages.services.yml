@@ -5,7 +5,7 @@ services:
     class: Drupal\entity_stages\Event\EntityStagesSubscriber
     tags:
       - { name: event_subscriber }
-
+  # Twig extension to return Node Load object by id.
   entity_stages.twig.node_load:
     class: Drupal\entity_stages\TwigExtension\DrupalApiExtension
     arguments: ["@renderer"]

@@ -4,3 +4,134 @@
  * @file
  * Entity Stages Module.
  */
+
+use Drupal\Core\Site\Settings;
+use Drupal\Core\Url;
+use Drupal\node\Entity\Node;
+use Drupal\user\Entity\User;
+use Drupal\views\Plugin\views\query\QueryPluginBase;
+use Drupal\views\ViewExecutable;
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function entity_stages_theme_registry_alter(&$theme_registry) {
+  // Moderate Content.
+  $theme_registry['views_view_table__entity_stages'] = $theme_registry['views_view_table'];
+  $theme_registry['views_view_table__entity_stages']['preprocess functions'][] = 'entity_stages_preprocess_views_view_table';
+}
+
+/**
+ * Implements entity_stages_preprocess_views_view_table().
+ */
+function entity_stages_preprocess_views_view_table(&$variables) {
+
+  // Verifier si la view existe.
+  $view = $variables['view'];
+
+  // Foreach row add uid and role to validate to easy data access.
+  if (!empty($view) && $view->result) {
+    foreach ($variables['rows'] as $key => &$row) {
+      // Get comparable revisions values.
+      $revisionEntity = $view->result[$key]->_entity;
+      $nodeLoad = Node::load($revisionEntity->id());
+
+      // Create Operation URLs.
+      $urlCompare = Url::fromRoute(
+       'diff.revisions_diff',
+       [
+         'node' => $nodeLoad->id(),
+         'left_revision' => $nodeLoad->getRevisionId(),
+         'right_revision' => $revisionEntity->getRevisionId(),
+         'filter' => 'split_fields',
+       ],
+       ['absolute' => TRUE]
+      )->toString();
+
+      // Open page.
+      $pageUrl = Url::fromRoute(
+       'entity.node.canonical',
+       ['node' => $nodeLoad->id()],
+       ['absolute' => TRUE]
+      )->toString();
+
+      // Accepter revision/modification.
+      $acceptRevision = Url::fromRoute(
+      'node.revision_revert_confirm',
+      [
+        'node' => $nodeLoad->id(),
+        'node_revision' => $revisionEntity->getRevisionId(),
+      ],
+      ['absolute' => TRUE]
+      )->toString();
+
+      // Refuser revision/modification.
+      $refuserRevision = Url::fromRoute(
+      'node.revision_delete_confirm',
+      [
+        'node' => $nodeLoad->id(),
+        'node_revision' => $revisionEntity->getRevisionId(),
+      ],
+      ['absolute' => TRUE]
+      )->toString();
+
+      // Add Node type to Type column.
+      $row['columns']['nothing']['content'][0]['field_output']['#markup'] = $nodeLoad->getType();
+
+      // Add route to accept and refuse.
+      $row['columns']['dropbutton']['content'][0]['field_output']['#markup'] =
+         '<div class="dropbutton-wrapper">
+           <div class="dropbutton-widget">
+             <ul class="dropbutton">
+               <li><a href="' . $urlCompare . '" target="_blank">' . t('Compare') . '</a></li>
+               <li><a href="' . $acceptRevision . '">' . t('Accept') . '</a></li>
+               <li><a href="' . $pageUrl . '">' . t('See Page') . '</a></li>
+               <li><a href="' . $refuserRevision . '">' . t('Reject') . '</a></li>
+             </ul>
+           </div>
+         </div>';
+    }
+
+    // Update query.
+    $view->pager->setItemsPerPage(100);
+    $view->pager->updatePageInfo();
+  }
+}
+
+/**
+ * Implements hook_views_post_execute().
+ */
+function entity_stages_views_post_execute(ViewExecutable $view) {
+  // Alter only the post query of this view.
+  if ($view->storage->get('id') == 'entity_stages') {
+    // Filter results before pre render.
+    foreach ($view->result as $index => $result) {
+      // If some condtions are met ignore the result.
+      if (!$result->_entity) {
+        unset($view->result[$index]);
+      }
+      else {
+        // Load entities.
+        $nodeLoad = Node::load($result->_entity->nid->value);
+        $userLoad = User::load($nodeLoad->uid->target_id);
+        $isAdmin = $userLoad->hasRole('administrator') || $userLoad->hasRole('admin_portail');
+        $revisionIsOlderThanCurrent = $result->_entity->changed->value < $nodeLoad->changed->value;
+        // If some condtions are met ignore the result.
+        if ($result->_entity->isDefaultRevision() || $revisionIsOlderThanCurrent || $isAdmin) {
+          unset($view->result[$index]);
+        }
+      }
+    }
+
+    // Update query.
+    $view->pager->updatePageInfo();
+  }
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function entity_stages_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
+  $settings = Settings::getAll();
+  $currentUser = \Drupal::currentUser();
+}

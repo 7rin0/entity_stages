@@ -1,12 +1,14 @@
+uuid: 6d378137-5180-4094-9881-3c4ea6701852
 langcode: en
 status: true
 dependencies:
   config:
+    - system.menu.admin
     - user.role.administrator
   module:
     - user
-    - diff
-    - entity_stages
+_core:
+  default_config_hash: GRh6fcA21ykT_EdJFbm7RCb4pcJ8qh28zV_q7IlTFQk
 id: entity_stages
 label: 'Entity Stages Moderation'
 module: views
@@ -76,7 +78,7 @@ display:
           sticky: false
           caption: ''
           summary: ''
-          description: 'Administer, moderate and validation pending content modifications.'
+          description: ''
           columns:
             nid: nid
             nothing: nothing
@@ -123,7 +125,7 @@ display:
               empty_column: false
               responsive: ''
             revision_log:
-              sortable: false
+              sortable: true
               default_sort_order: asc
               align: ''
               separator: ''
@@ -143,10 +145,15 @@ display:
               separator: ''
               empty_column: false
               responsive: ''
-          default: '-1'
-          empty_table: false
+          default: nid
+          empty_table: true
       row:
         type: fields
+        options:
+          default_field_elements: true
+          inline: {  }
+          separator: ''
+          hide_empty: false
       fields:
         nid:
           id: nid
@@ -155,7 +162,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
-          label: 'Title'
+          label: Title
           exclude: false
           alter:
             alter_text: true
@@ -270,7 +277,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
-          label: 'Title'
+          label: Title
           exclude: false
           alter:
             alter_text: false
@@ -530,7 +537,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
-          label: 'Updated'
+          label: Updated
           exclude: false
           alter:
             alter_text: false
@@ -667,7 +674,16 @@ display:
       title: 'Entity Stages Moderation'
       header: {  }
       footer: {  }
-      empty: {  }
+      empty:
+        messages:
+          id: messages
+          table: views
+          field: messages
+          relationship: none
+          group_type: group
+          admin_label: ''
+          empty: true
+          plugin_id: messages
       relationships: {  }
       arguments: {  }
       display_extenders: {  }
@@ -680,14 +696,23 @@ display:
         - 'user.node_grants:view'
         - user.roles
       tags: {  }
-  page_1:
+  default_page:
     display_plugin: page
-    id: page_1
+    id: default_page
     display_title: Page
     position: 1
     display_options:
       display_extenders: {  }
       path: admin/entity-stages
+      menu:
+        type: normal
+        title: 'Entity Stages'
+        description: ''
+        expanded: true
+        parent: ''
+        weight: 0
+        context: '0'
+        menu_name: admin
     cache_metadata:
       max-age: 0
       contexts:
