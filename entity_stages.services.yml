@@ -1,7 +1,13 @@
 # Multisite Services.
 services:
   # Add subscriber.
-  entity_stages.core.subscriber:
+  entity_stages.event.subscriber:
     class: Drupal\entity_stages\Event\EntityStagesSubscriber
     tags:
       - { name: event_subscriber }
+
+  entity_stages.twig.node_load:
+    class: Drupal\entity_stages\TwigExtension\DrupalApiExtension
+    arguments: ["@renderer"]
+    tags:
+        - { name: twig.extension }
