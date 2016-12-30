@@ -18,6 +18,8 @@ use Drupal\views\ViewExecutable;
 function entity_stages_theme_registry_alter(&$theme_registry) {
   // Moderate Content.
   $theme_registry['views_view_table__entity_stages'] = $theme_registry['views_view_table'];
+  // $theme_registry['views_view_table__entity_stages']['template'] = 'views-view-table--entity-stages';
+  // $theme_registry['views_view_table__entity_stages']['path'] = 'src/Template/views';.
   $theme_registry['views_view_table__entity_stages']['preprocess functions'][] = 'entity_stages_preprocess_views_view_table';
 }
 
@@ -25,12 +27,14 @@ function entity_stages_theme_registry_alter(&$theme_registry) {
  * Implements entity_stages_preprocess_views_view_table().
  */
 function entity_stages_preprocess_views_view_table(&$variables) {
+  // Register preprocess only if no page Entity Stage.
+  $getRoute = \Drupal::request()->get('_route');
 
-  // Verifier si la view existe.
+  // Get view.
   $view = $variables['view'];
 
   // Foreach row add uid and role to validate to easy data access.
-  if (!empty($view) && $view->result) {
+  if ($view && $view->result && $getRoute == 'view.entity_stages.default_page') {
     foreach ($variables['rows'] as $key => &$row) {
       // Get comparable revisions values.
       $revisionEntity = $view->result[$key]->_entity;
@@ -96,6 +100,8 @@ function entity_stages_preprocess_views_view_table(&$variables) {
     $view->pager->setItemsPerPage(100);
     $view->pager->updatePageInfo();
   }
+
+  $view->pager = [];
 }
 
 /**
@@ -114,7 +120,7 @@ function entity_stages_views_post_execute(ViewExecutable $view) {
         // Load entities.
         $nodeLoad = Node::load($result->_entity->nid->value);
         $userLoad = User::load($nodeLoad->uid->target_id);
-        $isAdmin = $userLoad->hasRole('administrator') || $userLoad->hasRole('admin_portail');
+        $isAdmin = $userLoad->hasRole('administrator');
         $revisionIsOlderThanCurrent = $result->_entity->changed->value < $nodeLoad->changed->value;
         // If some condtions are met ignore the result.
         if ($result->_entity->isDefaultRevision() || $revisionIsOlderThanCurrent || $isAdmin) {
@@ -134,4 +140,21 @@ function entity_stages_views_post_execute(ViewExecutable $view) {
 function entity_stages_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
   $settings = Settings::getAll();
   $currentUser = \Drupal::currentUser();
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function entity_stages_menu_local_tasks_alter(&$data, $route_name) {
+  // Add Entity Stages task.
+  $data['tabs'][0][] = [
+    '#theme' => 'menu_local_task',
+    '#active' => $route_name == 'view.entity_stages.default_page',
+    '#link' => [
+      'title' => t('Entity stages'),
+      'url' => Url::fromRoute('view.entity_stages.default_page',
+      [],
+      ['absolute' => TRUE]),
+    ],
+  ];
 }

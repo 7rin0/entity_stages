@@ -408,7 +408,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
-          label: Auteur
+          label: Author
           exclude: false
           alter:
             alter_text: false
