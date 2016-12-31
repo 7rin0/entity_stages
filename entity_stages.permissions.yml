@@ -1,0 +1,12 @@
+administer entity stages:
+  title: 'Administer entity stages'
+  description: 'Administer all operations on Entity Stages. Promote, change ownership, edit stages, and perform other tasks across all content types.'
+  restrict access: true
+
+moderate own entity stages:
+  title: 'Moderate Own Entity Stages'
+  description: 'Moderate own entities or moderate those content types where access is allowed.'
+  restrict access: true
+
+# permission_callbacks:
+  # - \Drupal\entity_stages\Access\EntityStagesAccess::defaultPermissions
