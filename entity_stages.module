@@ -95,13 +95,7 @@ function entity_stages_preprocess_views_view_table(&$variables) {
            </div>
          </div>';
     }
-
-    // Update query.
-    $view->pager->setItemsPerPage(100);
-    $view->pager->updatePageInfo();
   }
-
-  $view->pager = [];
 }
 
 /**
@@ -129,8 +123,13 @@ function entity_stages_views_post_execute(ViewExecutable $view) {
       }
     }
 
-    // Update query.
+    // Update rows number and pager.
+    $nbRows = count($view->result);
+    $view->total_items = $nbRows;
+    $view->pager->total_items = $nbRows;
     $view->pager->updatePageInfo();
+    $view->query->view->pager->total_items = $nbRows;
+    $view->query->view->pager->updatePageInfo();
   }
 }
 

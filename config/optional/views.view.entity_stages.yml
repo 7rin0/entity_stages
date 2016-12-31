@@ -675,15 +675,19 @@ display:
       header: {  }
       footer: {  }
       empty:
-        messages:
-          id: messages
+        area:
+          id: area
           table: views
-          field: messages
+          field: area
           relationship: none
           group_type: group
           admin_label: ''
           empty: true
-          plugin_id: messages
+          tokenize: false
+          content:
+            value: 'No content left to moderate.'
+            format: basic_html
+          plugin_id: text
       relationships: {  }
       arguments: {  }
       display_extenders: {  }
