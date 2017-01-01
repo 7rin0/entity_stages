@@ -19,6 +19,9 @@ use Drupal\Core\Field\BaseFieldDefinition;
  */
 function entity_stages_base_field_info(EntityTypeInterface $entity_type) {
   if ($entity_type->id() == 'node') {
+    // TODO: Use this field as a exposed or not filter to avoid
+    // Repeatly ask for approval on same content. Another solution is to pass
+    // Revision UID to Administrator if refused, not optimal solutional though.
     $fields['entity_stages_validation_state'] = BaseFieldDefinition::create('string')
       ->setComputed(TRUE);
     return $fields;
@@ -96,6 +99,7 @@ function entity_stages_preprocess_views_view_table(&$variables) {
       $row['columns']['nothing']['content'][0]['field_output']['#markup'] = $nodeLoad->getType();
 
       // Add route to accept and refuse.
+      // TODO: Add redirect to Entity Stage Moderation View.
       $row['columns']['dropbutton']['content'][0]['field_output']['#markup'] =
          '<div class="dropbutton-wrapper">
            <div class="dropbutton-widget">
