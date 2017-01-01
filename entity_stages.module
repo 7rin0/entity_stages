@@ -11,6 +11,19 @@ use Drupal\node\Entity\Node;
 use Drupal\user\Entity\User;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+
+/**
+ * Implements hook_entity_base_field_info().
+ */
+function entity_stages_base_field_info(EntityTypeInterface $entity_type) {
+  if ($entity_type->id() == 'node') {
+    $fields['entity_stages_validation_state'] = BaseFieldDefinition::create('string')
+      ->setComputed(TRUE);
+    return $fields;
+  }
+}
 
 /**
  * Implements hook_theme_registry_alter().
@@ -88,8 +101,8 @@ function entity_stages_preprocess_views_view_table(&$variables) {
            <div class="dropbutton-widget">
              <ul class="dropbutton">
                <li><a href="' . $urlCompare . '" target="_blank">' . t('Compare') . '</a></li>
+               <li><a href="' . $pageUrl . '">' . t('View') . '</a></li>
                <li><a href="' . $acceptRevision . '">' . t('Accept') . '</a></li>
-               <li><a href="' . $pageUrl . '">' . t('See Page') . '</a></li>
                <li><a href="' . $refuserRevision . '">' . t('Reject') . '</a></li>
              </ul>
            </div>
@@ -109,21 +122,23 @@ function entity_stages_views_post_execute(ViewExecutable $view) {
       // If some condtions are met ignore the result.
       if (!$result->_entity) {
         unset($view->result[$index]);
+        continue;
       }
-      else {
-        // Load entities.
-        $nodeLoad = Node::load($result->_entity->nid->value);
-        $userLoad = User::load($nodeLoad->uid->target_id);
-        $isAdmin = $userLoad->hasRole('administrator');
-        $revisionIsOlderThanCurrent = $result->_entity->changed->value < $nodeLoad->changed->value;
-        // If some condtions are met ignore the result.
-        if ($result->_entity->isDefaultRevision() || $revisionIsOlderThanCurrent || $isAdmin) {
-          unset($view->result[$index]);
-        }
+
+      // Load entities.
+      $nodeLoad = Node::load($result->_entity->nid->value);
+      $userLoad = User::load($nodeLoad->uid->target_id);
+      $isAdmin = $userLoad->hasRole('administrator');
+      $revisionIsOlderThanCurrent = $result->_entity->changed->value < $nodeLoad->changed->value;
+
+      // If some condtions are met ignore the result.
+      if ($result->_entity->isDefaultRevision() || $revisionIsOlderThanCurrent || $isAdmin) {
+        unset($view->result[$index]);
       }
     }
 
     // Update rows number and pager.
+    // $view->pager->setItemsPerPage(1000);.
     $nbRows = count($view->result);
     $view->total_items = $nbRows;
     $view->pager->total_items = $nbRows;
@@ -156,4 +171,31 @@ function entity_stages_menu_local_tasks_alter(&$data, $route_name) {
       ['absolute' => TRUE]),
     ],
   ];
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function entity_stages_node_presave(Node $node) {
+  // Current User.
+  $loadCurrentUser = User::load(\Drupal::currentUser()->id());
+  $requireValidation =
+  !$loadCurrentUser->hasRole('administrator') &&
+  $loadCurrentUser->hasPermission('requires admin validation');
+
+  // If User hasnt permission to publish or modify without validation
+  // the content status is either unpublished or
+  // published and waiting for validation.
+  if ($requireValidation) {
+    // If new starts as unpublished.
+    if ($node->isNew()) {
+      $node->set('status', 0);
+    }
+    // Else keep current revision.
+    else {
+      $node->set('status', $node->original->isPublished());
+      $node->isDefaultRevision(FALSE);
+      $node->original->isDefaultRevision(TRUE);
+    }
+  }
 }

@@ -8,5 +8,9 @@ moderate own entity stages:
   description: 'Moderate own entities or moderate those content types where access is allowed.'
   restrict access: true
 
+requires admin validation:
+  title: 'Requires Admin Validation'
+  description: 'If this permission is checked every content created or update the administrator validation will be required.'
+
 # permission_callbacks:
   # - \Drupal\entity_stages\Access\EntityStagesAccess::defaultPermissions
