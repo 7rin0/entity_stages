@@ -5,14 +5,15 @@
  * Entity Stages Module.
  */
 
-use Drupal\Core\Site\Settings;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\Core\Site\Settings;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\node\Entity\Node;
 use Drupal\user\Entity\User;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
-use Drupal\Core\Entity\EntityTypeInterface;
-use Drupal\Core\Field\BaseFieldDefinition;
 
 /**
  * Implements hook_entity_base_field_info().
@@ -98,16 +99,20 @@ function entity_stages_preprocess_views_view_table(&$variables) {
       // Add Node type to Type column.
       $row['columns']['nothing']['content'][0]['field_output']['#markup'] = $nodeLoad->getType();
 
+      // Add return page.
+      $contentModerationPage = '?destination=' . Url::fromRoute(
+        'view.entity_stages.default_page', [], ['absolute' => TRUE]
+      )->toString();
+
       // Add route to accept and refuse.
-      // TODO: Add redirect to Entity Stage Moderation View.
       $row['columns']['dropbutton']['content'][0]['field_output']['#markup'] =
          '<div class="dropbutton-wrapper">
            <div class="dropbutton-widget">
              <ul class="dropbutton">
                <li><a href="' . $urlCompare . '" target="_blank">' . t('Compare') . '</a></li>
                <li><a href="' . $pageUrl . '">' . t('View') . '</a></li>
-               <li><a href="' . $acceptRevision . '">' . t('Accept') . '</a></li>
-               <li><a href="' . $refuserRevision . '">' . t('Reject') . '</a></li>
+               <li><a href="' . $acceptRevision . $contentModerationPage . '">' . t('Accept') . '</a></li>
+               <li><a href="' . $refuserRevision . $contentModerationPage . '">' . t('Reject') . '</a></li>
              </ul>
            </div>
          </div>';
@@ -136,7 +141,11 @@ function entity_stages_views_post_execute(ViewExecutable $view) {
       $revisionIsOlderThanCurrent = $result->_entity->changed->value < $nodeLoad->changed->value;
 
       // If some condtions are met ignore the result.
-      if ($result->_entity->isDefaultRevision() || $revisionIsOlderThanCurrent || $isAdmin) {
+      if (
+        ($result->_entity->isDefaultRevision() && $nodeLoad->isPublished()) ||
+        $revisionIsOlderThanCurrent ||
+        $isAdmin
+      ) {
         unset($view->result[$index]);
       }
     }
@@ -170,9 +179,11 @@ function entity_stages_menu_local_tasks_alter(&$data, $route_name) {
     '#active' => $route_name == 'view.entity_stages.default_page',
     '#link' => [
       'title' => t('Entity stages'),
-      'url' => Url::fromRoute('view.entity_stages.default_page',
-      [],
-      ['absolute' => TRUE]),
+      'url' => Url::fromRoute(
+        'view.entity_stages.default_page',
+        [],
+        ['absolute' => TRUE]
+      ),
     ],
   ];
 }
@@ -185,7 +196,7 @@ function entity_stages_node_presave(Node $node) {
   $loadCurrentUser = User::load(\Drupal::currentUser()->id());
   $requireValidation =
   !$loadCurrentUser->hasRole('administrator') &&
-  $loadCurrentUser->hasPermission('requires admin validation');
+  !$loadCurrentUser->hasPermission('publish entity stages');
 
   // If User hasnt permission to publish or modify without validation
   // the content status is either unpublished or
@@ -202,4 +213,31 @@ function entity_stages_node_presave(Node $node) {
       $node->original->isDefaultRevision(TRUE);
     }
   }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function entity_stages_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // Alter redirection to return to entity stages validation page.
+  if (
+    $form_id == 'node_revision_revert_confirm' ||
+    $form_id == 'node_revision_delete_confirm'
+  ) {
+    $form['#after_build'][] = '_redirect_to_moderation_entity_stages_page';
+    $form['#submit'][] = '_redirect_to_moderation_entity_stages_page';
+  }
+}
+
+/**
+ * Alter default form redirection.
+ */
+function _redirect_to_moderation_entity_stages_page($form, FormStateInterface $form_state) {
+  if ($getDestination = $_GET['destination']) {
+    $submitLabel = $form['#form_id'] == 'node_revision_revert_confirm' ? t('Accept') : t('Reject');
+    $form_state->setRedirectUrl(Url::fromUri($getDestination));
+    $form['actions']['submit']['#value'] = $submitLabel;
+    $form['actions']['cancel']['#url'] = Url::fromUri($getDestination);
+  }
+  return $form;
 }
