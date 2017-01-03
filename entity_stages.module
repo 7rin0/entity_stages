@@ -104,15 +104,66 @@ function entity_stages_preprocess_views_view_table(&$variables) {
         'view.entity_stages.default_page', [], ['absolute' => TRUE]
       )->toString();
 
+      // Publish button.
+      $publishButton = Url::fromRoute(
+      'entity_stages.publish.content',
+      ['entity_id' => $nodeLoad->id()],
+      ['absolute' => TRUE]
+      )->toString();
+
+      // Add links.
+      $linksStructure = [];
+      $linksOutput = '';
+
+      // Conditions.
+      $conditionPublished = $nodeLoad->isPublished();
+      $conditionCurrent = $revisionEntity->isDefaultRevision();
+      $conditionCurrentPublished = !$conditionPublished && $conditionCurrent;
+
+      // Link structures.
+      $linksStructure['publish'] = [
+        'target' => 'normal',
+        'enabled' => $conditionCurrentPublished,
+        'label' => t('Publish'),
+        'url' => $publishButton,
+      ];
+      $linksStructure['diff'] = [
+        'target' => '_blank',
+        'enabled' => !$conditionCurrentPublished,
+        'label' => t('Difference'),
+        'url' => $publishButton,
+      ];
+      $linksStructure['view'] = [
+        'target' => 'normal',
+        'enabled' => 1,
+        'label' => t('View'),
+        'url' => $pageUrl,
+      ];
+      $linksStructure['accept'] = [
+        'target' => 'normal',
+        'enabled' => !$conditionCurrentPublished,
+        'label' => t('Accept'),
+        'url' => $acceptRevision . $contentModerationPage,
+      ];
+      $linksStructure['reject'] = [
+        'target' => 'normal',
+        'enabled' => !$conditionCurrentPublished,
+        'label' => t('Reject'),
+        'url' => $refuserRevision . $contentModerationPage,
+      ];
+
+      foreach ($linksStructure as $key => $value) {
+        if ($value['enabled']) {
+          $linksOutput .= '<li><a href="' . $value['url'] . '" target="' . $value['target'] . '">' . $value['label'] . '</a></li>';
+        }
+      }
+
       // Add route to accept and refuse.
       $row['columns']['dropbutton']['content'][0]['field_output']['#markup'] =
          '<div class="dropbutton-wrapper">
            <div class="dropbutton-widget">
              <ul class="dropbutton">
-               <li><a href="' . $urlCompare . '" target="_blank">' . t('Compare') . '</a></li>
-               <li><a href="' . $pageUrl . '">' . t('View') . '</a></li>
-               <li><a href="' . $acceptRevision . $contentModerationPage . '">' . t('Accept') . '</a></li>
-               <li><a href="' . $refuserRevision . $contentModerationPage . '">' . t('Reject') . '</a></li>
+               ' . $linksOutput . '
              </ul>
            </div>
          </div>';
@@ -142,7 +193,7 @@ function entity_stages_views_post_execute(ViewExecutable $view) {
 
       // If some condtions are met ignore the result.
       if (
-        ($result->_entity->isDefaultRevision() && $nodeLoad->isPublished()) ||
+        $result->_entity->isDefaultRevision() && $nodeLoad->isPublished() ||
         $revisionIsOlderThanCurrent ||
         $isAdmin
       ) {

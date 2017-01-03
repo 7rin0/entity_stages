@@ -5,3 +5,11 @@ entity_stages.default.routing:
     _controller: '\Drupal\entity_stages\Controller\EntityStagesController::indexAction'
   requirements:
     _permission: 'administer'
+
+entity_stages.publish.content:
+  path: '/admin/entity_stages/publish/{entity_id}'
+  defaults:
+    _title: 'Entity Stages - Publish Content'
+    _controller: '\Drupal\entity_stages\Controller\EntityStagesController::publishAction'
+  requirements:
+    _permission: 'administer'
