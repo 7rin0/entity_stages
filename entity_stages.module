@@ -97,7 +97,7 @@ function entity_stages_preprocess_views_view_table(&$variables) {
       )->toString();
 
       // Add Node type to Type column.
-      $row['columns']['nothing']['content'][0]['field_output']['#markup'] = $nodeLoad->getType();
+      $row['columns']['nothing']['content'][0]['field_output']['#markup'] = ucfirst($nodeLoad->getType());
 
       // Add return page.
       $contentModerationPage = '?destination=' . Url::fromRoute(
@@ -216,13 +216,46 @@ function entity_stages_views_post_execute(ViewExecutable $view) {
  * Implements hook_views_query_alter().
  */
 function entity_stages_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
-  $settings = Settings::getAll();
-  $currentUser = \Drupal::currentUser();
+  if ($view->storage->get('id') == 'entity_stages') {
+    $settings = Settings::getAll();
+    $currentUser = \Drupal::currentUser();
+    $getType = \Drupal::request()->get('type');
+    $getViewsJoinManager = \Drupal::service('plugin.manager.views.join');
+
+    // Filter by type.
+    if ($getType) {
+      if ($getType == 'All') {
+        $query->where[1]['conditions'] = [];
+      }
+      else {
+        $join = $getViewsJoinManager->createInstance(
+          'standard',
+          [
+            'table' => 'node_field_data',
+            'field' => 'nid',
+            'left_table' => 'node_revision',
+            'left_field' => 'nid',
+            'operator' => '=',
+            'adjusted' => TRUE,
+          ]
+        );
+        // Add left join for node table from the node_revision table.
+        $query->addRelationship('node_field_data', $join, 'node_field_data');
+        $query->where[1]['conditions'][0] = [
+          'field' => 'node_field_data.type',
+          'value' => $query->where[1]['conditions'][0]['value'],
+          'operator' => '=',
+        ];
+      }
+    }
+  }
 }
 
+// Wrapper: "Exception in Entity Stages Moderation[entity_stages]: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'node_field_data.type' in 'where clause': SELECT node_field_revision.vid AS vid\nFROM \n{node_field_revision} node_field_revision\nLEFT JOIN {node_field_data} node_revision ON node_revision.nid = node_revision.nid\nWHERE (( (node_field_data.type IN  (:db_condition_placeholder_0)) ))\nORDER BY node_field_revision.nid ASC\nLIMIT 100001 OFFSET 0; Array\n(\n    [:db_condition_placeholder_0] => article\n)\n" at /home/l7rin0/Documents/7rin0/local_projects/drupal8/core/modules/views/src/Plugin/views/query/Sql.php line 1488, referer: http://drupal-8.com/admin/entity-stages
 /**
  * Implements hook_menu_local_tasks_alter().
  */
+
 function entity_stages_menu_local_tasks_alter(&$data, $route_name) {
   // Add Entity Stages task.
   $data['tabs'][0][] = [
@@ -291,4 +324,11 @@ function _redirect_to_moderation_entity_stages_page($form, FormStateInterface $f
     $form['actions']['cancel']['#url'] = Url::fromUri($getDestination);
   }
   return $form;
+}
+
+/**
+ *
+ */
+function entity_stages_views_data_alter(array &$data) {
+  $data['node_revision']['type'] = $data['node_field_data']['type'];
 }
