@@ -17,7 +17,7 @@ class ViewManager {
   /**
    * Implements entity_stages_preprocess_views_view_table().
    */
-  static function _preprocessViewsViewTable(&$variables) {
+  public function _preprocessViewsViewTable(&$variables) {
     // Register preprocess only if no page Entity Stage.
     $getRoute = \Drupal::request()->get('_route');
 
@@ -148,7 +148,7 @@ class ViewManager {
   /**
    * Implements hook_views_post_execute().
    */
-  static function _viewsPostExecute(ViewExecutable $view) {
+  public function _viewsPostExecute(ViewExecutable $view) {
     // Alter only the post query of this view.
     if ($view->storage->get('id') == 'entity_stages') {
       // Filter results before pre render.
@@ -189,7 +189,7 @@ class ViewManager {
   /**
    * Implements hook_views_query_alter().
    */
-  static function _viewsQueryAlter(ViewExecutable $view, QueryPluginBase $query) {
+  public function _viewsQueryAlter(ViewExecutable $view, QueryPluginBase $query) {
     if ($view->storage->get('id') == 'entity_stages') {
       $settings = Settings::getAll();
       $currentUser = \Drupal::currentUser();
@@ -228,7 +228,7 @@ class ViewManager {
   /**
    * Implements hook_views_data_alter().
    */
-  static function _viewsDataAlter(array &$data) {
+  public function _viewsDataAlter(array &$data) {
     $data['node_revision']['type'] = $data['node_field_data']['type'];
   }
 

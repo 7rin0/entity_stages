@@ -13,7 +13,7 @@ class FormManager {
   /**
    * Handles Drupal Module Related Form Alter.
    */
-  static function _hookFormAlter(&$form, FormStateInterface $form_state, $form_id) {
+  public function _hookFormAlter(&$form, FormStateInterface $form_state, $form_id) {
     // Alter redirection to return to entity stages validation page.
     if (
         $form_id == 'node_revision_revert_confirm' ||
@@ -27,7 +27,7 @@ class FormManager {
   /**
    * Alter default form redirection.
    */
-  function _redirect_to_moderation_entity_stages_page($form, FormStateInterface $form_state) {
+  public function _redirect_to_moderation_entity_stages_page($form, FormStateInterface $form_state) {
     if ($getDestination = $_GET['destination']) {
       $submitLabel = $form['#form_id'] == 'node_revision_revert_confirm' ? t('Accept') : t('Reject');
       $form_state->setRedirectUrl(Url::fromUri($getDestination));

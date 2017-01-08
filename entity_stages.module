@@ -7,12 +7,12 @@
 
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\node\Entity\Node;
 use Drupal\user\Entity\User;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
+use Drupal\entity_stages\Manager\ElementManager;
 use Drupal\entity_stages\Manager\FormManager;
 use Drupal\entity_stages\Manager\ViewManager;
 
@@ -55,54 +55,7 @@ function entity_stages_form_alter(&$form, FormStateInterface $form_state, $form_
  * Implements hook_menu_local_tasks_alter().
  */
 function entity_stages_menu_local_tasks_alter(&$data, $route_name) {
-  // Routes were entity stages should be present as a task.
-  $allowedRoutes = [
-    'system.admin_content',
-    'entity.user.collection',
-    'view.entity_stages.default_page',
-  ];
-
-  // If entity stages is the current route.
-  if ($route_name == 'view.entity_stages.default_page') {
-    $data['tabs'][0][] = [
-      '#theme' => 'menu_local_task',
-      '#active' => $route_name == 'system.admin_content',
-      '#link' => [
-        'title' => t('Content'),
-        'url' => Url::fromRoute(
-      'system.admin_content',
-      [],
-      ['absolute' => TRUE]
-        ),
-      ],
-    ];
-    $data['tabs'][0][] = [
-      '#theme' => 'menu_local_task',
-      '#active' => $route_name == 'entity.user.collection',
-      '#link' => [
-        'title' => t('People'),
-        'url' => Url::fromRoute(
-      'entity.user.collection',
-      [],
-      ['absolute' => TRUE]
-        ),
-      ],
-    ];
-  }
-
-  if (in_array($route_name, $allowedRoutes)) {
-    // Add Entity Stages task.
-    $data['tabs'][0][] = [
-      '#theme' => 'menu_local_task',
-      '#active' => $route_name == 'view.entity_stages.default_page',
-      '#link' => [
-        'title' => t('Entity stages'),
-        'url' => Url::fromRoute(
-          'view.entity_stages.default_page', [], ['absolute' => TRUE]
-        ),
-      ],
-    ];
-  }
+  ElementManager::_menuLocalTasksAlter($data, $route_name);
 }
 
 /**
