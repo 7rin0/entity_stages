@@ -59,6 +59,26 @@ function entity_stages_menu_local_tasks_alter(&$data, $route_name) {
 }
 
 /**
+ * Implements hook_theme_registry_alter().
+ */
+function entity_stages_theme_registry_alter(&$theme_registry) {
+  ElementManager::_themeRegistryAlter($theme_registry);
+}
+
+/**
+ * Implements hook_entity_base_field_info().
+ */
+function entity_stages_entity_base_field_info_alter(&$fields, EntityTypeInterface $entity_type) {
+  if ($entity_type->id() == 'node') {
+    // TODO: Use this field as a exposed or not filter to avoid
+    // Repeatly ask for approval on same content. Another solution is to pass
+    // Revision UID to Administrator if refused, not optimal solutional though.
+    $fields['entity_stages_validation_state'] = BaseFieldDefinition::create('string')
+      ->setComputed(TRUE);
+  }
+}
+
+/**
  * Implements hook_node_presave().
  */
 function entity_stages_node_presave(Node $node) {
@@ -83,28 +103,4 @@ function entity_stages_node_presave(Node $node) {
       $node->original->isDefaultRevision(TRUE);
     }
   }
-}
-
-/**
- * Implements hook_entity_base_field_info().
- */
-function entity_stages_entity_base_field_info_alter(&$fields, EntityTypeInterface $entity_type) {
-  if ($entity_type->id() == 'node') {
-    // TODO: Use this field as a exposed or not filter to avoid
-    // Repeatly ask for approval on same content. Another solution is to pass
-    // Revision UID to Administrator if refused, not optimal solutional though.
-    $fields['entity_stages_validation_state'] = BaseFieldDefinition::create('string')
-      ->setComputed(TRUE);
-  }
-}
-
-/**
- * Implements hook_theme_registry_alter().
- */
-function entity_stages_theme_registry_alter(&$theme_registry) {
-  // Moderate Content.
-  $theme_registry['views_view_table__entity_stages'] = $theme_registry['views_view_table'];
-  // $theme_registry['views_view_table__entity_stages']['template'] = 'views-view-table--entity-stages';
-  // $theme_registry['views_view_table__entity_stages']['path'] = 'src/Template/views';.
-  $theme_registry['views_view_table__entity_stages']['preprocess functions'][] = 'entity_stages_preprocess_views_view_table';
 }
