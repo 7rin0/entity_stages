@@ -5,6 +5,7 @@ namespace Drupal\entity_stages\Manager;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\node\Entity\Node;
+use Drupal\user\Entity\User;
 
 /**
  * Handles Drupal Form Elements Override.
@@ -14,11 +15,29 @@ class EntityManager {
   /**
    * Handles Drupal Module Related Form Alter.
    */
-  public function _entityBaseFieldInfoAlter(&$fields, EntityTypeInterface $entity_type) {
+  public function _entityBaseFieldInfo(EntityTypeInterface $entity_type) {
+    $fields = [];
+
     if ($entity_type->id() == 'node') {
-      $fields['entity_stages_validation_state'] = BaseFieldDefinition::create('string')
+      $fields['entity_stages_current_status'] =
+        BaseFieldDefinition::create('boolean')
+          ->setLabel(t('Entity Stages - Current Status'))
+          ->setDefaultValue(1)
+          ->setRevisionable(TRUE)
+          ->setTranslatable(TRUE)
           ->setComputed(TRUE);
+
+      $fields['entity_stages_revision_status'] =
+        BaseFieldDefinition::create('boolean')
+          ->setLabel(t('Entity Stages - Revision Status'))
+          ->setDefaultValue(0)
+          ->setRevisionable(TRUE)
+          ->setTranslatable(TRUE)
+          ->setComputed(TRUE);
+
     }
+
+    return $fields;
   }
 
   /**
@@ -30,6 +49,10 @@ class EntityManager {
     $requireValidation =
     !$loadCurrentUser->hasRole('administrator') &&
     !$loadCurrentUser->hasPermission('publish entity stages');
+
+    // Default entity stages status.
+    $node->set('entity_stages_current_status', !$requireValidation);
+    $node->set('entity_stages_revision_status', !$requireValidation);
 
     // If User hasnt permission to publish or modify without validation
     // the content status is either unpublished or

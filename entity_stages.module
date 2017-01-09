@@ -67,8 +67,8 @@ function entity_stages_theme_registry_alter(&$theme_registry) {
 /**
  * Implements hook_entity_base_field_info().
  */
-function entity_stages_entity_base_field_info_alter(&$fields, EntityTypeInterface $entity_type) {
-  EntityManager::_entityBaseFieldInfoAlter($fields, $entity_type);
+function entity_stages_entity_base_field_info(EntityTypeInterface $entity_type) {
+  return EntityManager::_entityBaseFieldInfo($entity_type);
 }
 
 /**
