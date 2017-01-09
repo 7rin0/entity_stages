@@ -5,6 +5,7 @@
  * Entity Stages Module.
  */
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\node\Entity\Node;
@@ -62,6 +63,13 @@ function entity_stages_menu_local_tasks_alter(&$data, $route_name) {
  */
 function entity_stages_theme_registry_alter(&$theme_registry) {
   ElementManager::_themeRegistryAlter($theme_registry);
+}
+
+/**
+ * Implements hook_entity_operation_alter().
+ */
+function entity_stages_entity_operation_alter(array &$operations, EntityInterface $entity) {
+  ElementManager::_entityOperationAlter($operations, $entity);
 }
 
 /**

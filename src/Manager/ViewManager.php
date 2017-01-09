@@ -193,7 +193,9 @@ class ViewManager {
     if ($view->storage->get('id') == 'entity_stages') {
       $settings = Settings::getAll();
       $currentUser = \Drupal::currentUser();
-      $getType = \Drupal::request()->get('type');
+      $getRequest = \Drupal::request();
+      $getType = $getRequest->get('type');
+      $getNid = $getRequest->get('nid');
       $getViewsJoinManager = \Drupal::service('plugin.manager.views.join');
 
       // Filter by type.
@@ -221,6 +223,15 @@ class ViewManager {
             'operator' => '=',
           ];
         }
+      }
+
+      // Filter by node id.
+      if ($getNid && (int) $getNid) {
+        $query->where[1]['conditions'][] = [
+          'field' => 'nid',
+          'value' => $getNid,
+          'operator' => '=',
+        ];
       }
     }
   }

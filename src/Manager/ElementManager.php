@@ -2,6 +2,7 @@
 
 namespace Drupal\entity_stages\Manager;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
 
 /**
@@ -18,6 +19,19 @@ class ElementManager {
     // $theme_registry['views_view_table__entity_stages']['template'] = 'views-view-table--entity-stages';
     // $theme_registry['views_view_table__entity_stages']['path'] = 'src/Template/views';.
     $theme_registry['views_view_table__entity_stages']['preprocess functions'][] = 'entity_stages_preprocess_views_view_table';
+  }
+
+  /**
+   * Implements hook_entity_operation_alter().
+   */
+  public function _entityOperationAlter(array &$operations, EntityInterface $entity) {
+    if ($entity->getEntityTypeId() == 'node') {
+      $operations['entity_stages_moderate'] = [
+        'title' => t('Moderate'),
+        'url' => Url::fromRoute('view.entity_stages.default_page', ['nid' => $entity->id()], ['absolute' => TRUE]),
+        'weight' => -1,
+      ];
+    }
   }
 
   /**
