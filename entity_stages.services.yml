@@ -1,10 +1,16 @@
-# Multisite Services.
+# Entity Stages Services.
 services:
+  # Entity Stages Main Service.
+  entity_stages.main.service:
+    class: Drupal\entity_stages\Service\EntityStagesService
+    arguments: ["@request_stack", "@current_user", "@entity_type.manager"]
+
   # Add subscriber.
   entity_stages.event.subscriber:
     class: Drupal\entity_stages\Event\EntityStagesSubscriber
     tags:
       - { name: event_subscriber }
+
   # Twig extension to return Node Load object by id.
   entity_stages.twig.node_load:
     class: Drupal\entity_stages\TwigExtension\DrupalApiExtension

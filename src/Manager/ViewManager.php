@@ -29,14 +29,14 @@ class ViewManager {
       foreach ($variables['rows'] as $key => &$row) {
         // Get comparable revisions values.
         $revisionEntity = $view->result[$key]->_entity;
-        $nodeLoad = Node::load($revisionEntity->id());
+        $currentEntity = Node::load($revisionEntity->id());
 
         // Create Operation URLs.
         $urlCompare = Url::fromRoute(
          'diff.revisions_diff',
          [
-           'node' => $nodeLoad->id(),
-           'left_revision' => $nodeLoad->getRevisionId(),
+           'node' => $currentEntity->id(),
+           'left_revision' => $currentEntity->getRevisionId(),
            'right_revision' => $revisionEntity->getRevisionId(),
            'filter' => 'split_fields',
          ],
@@ -46,7 +46,7 @@ class ViewManager {
         // Open page.
         $pageUrl = Url::fromRoute(
          'entity.node.canonical',
-         ['node' => $nodeLoad->id()],
+         ['node' => $currentEntity->id()],
          ['absolute' => TRUE]
         )->toString();
 
@@ -54,7 +54,7 @@ class ViewManager {
         $acceptRevision = Url::fromRoute(
         'node.revision_revert_confirm',
         [
-          'node' => $nodeLoad->id(),
+          'node' => $currentEntity->id(),
           'node_revision' => $revisionEntity->getRevisionId(),
         ],
         ['absolute' => TRUE]
@@ -64,14 +64,14 @@ class ViewManager {
         $refuserRevision = Url::fromRoute(
         'node.revision_delete_confirm',
         [
-          'node' => $nodeLoad->id(),
+          'node' => $currentEntity->id(),
           'node_revision' => $revisionEntity->getRevisionId(),
         ],
         ['absolute' => TRUE]
         )->toString();
 
         // Add Node type to Type column.
-        $row['columns']['nothing']['content'][0]['field_output']['#markup'] = ucfirst($nodeLoad->getType());
+        $row['columns']['nothing']['content'][0]['field_output']['#markup'] = ucfirst($currentEntity->getType());
 
         // Add return page.
         $contentModerationPage = '?destination=' . Url::fromRoute(
@@ -81,7 +81,7 @@ class ViewManager {
         // Publish button.
         $publishButton = Url::fromRoute(
         'entity_stages.publish.content',
-        ['entity_id' => $nodeLoad->id()],
+        ['entity_id' => $currentEntity->id()],
         ['absolute' => TRUE]
         )->toString();
 
@@ -90,7 +90,7 @@ class ViewManager {
         $linksOutput = '';
 
         // Conditions.
-        $conditionPublished = $nodeLoad->isPublished();
+        $conditionPublished = $currentEntity->isPublished();
         $conditionCurrent = $revisionEntity->isDefaultRevision();
         $conditionCurrentPublished = !$conditionPublished && $conditionCurrent;
 
@@ -151,6 +151,8 @@ class ViewManager {
   public function _viewsPostExecute(ViewExecutable $view) {
     // Alter only the post query of this view.
     if ($view->storage->get('id') == 'entity_stages') {
+      // Service Node Stages Checker.
+      $entityStagesService = \Drupal::service('entity_stages.main.service');
       // Filter results before pre render.
       foreach ($view->result as $index => $result) {
         // If some condtions are met ignore the result.
@@ -160,14 +162,16 @@ class ViewManager {
         }
 
         // Load entities.
-        $nodeLoad = Node::load($result->_entity->nid->value);
-        $userLoad = User::load($nodeLoad->uid->target_id);
+        $currentEntity = Node::load($result->_entity->nid->value);
+        $userLoad = User::load($currentEntity->uid->target_id);
         $isAdmin = $userLoad->hasRole('administrator');
-        $revisionIsOlderThanCurrent = $result->_entity->changed->value < $nodeLoad->changed->value;
+        $revisionIsOlderThanCurrent = $result->_entity->changed->value < $currentEntity->changed->value;
+        $needModerationOne = $entityStagesService->needModeration($currentEntity);
+        $needModerationTwo = $entityStagesService->needModeration($currentEntity, $result->_entity);
 
         // If some condtions are met ignore the result.
         if (
-          $result->_entity->isDefaultRevision() && $nodeLoad->isPublished() ||
+          $result->_entity->isDefaultRevision() && $currentEntity->isPublished() ||
           $revisionIsOlderThanCurrent ||
           $isAdmin
         ) {
