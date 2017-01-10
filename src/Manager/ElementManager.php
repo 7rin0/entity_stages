@@ -26,11 +26,16 @@ class ElementManager {
    */
   public function _entityOperationAlter(array &$operations, EntityInterface $entity) {
     if ($entity->getEntityTypeId() == 'node') {
-      $operations['entity_stages_moderate'] = [
-        'title' => t('Moderate'),
-        'url' => Url::fromRoute('view.entity_stages.default_page', ['nid' => $entity->id()], ['absolute' => TRUE]),
-        'weight' => -1,
-      ];
+      // Service Node Stages Checker.
+      $entityStagesService = \Drupal::service('entity_stages.main.service');
+      $needModerationOne = $entityStagesService->needModeration($entity);
+      if ($entityStagesService->needModeration($entity)) {
+        $operations['entity_stages_moderate'] = [
+          'title' => t('Moderate'),
+          'url' => Url::fromRoute('view.entity_stages.default_page', ['nid' => $entity->id()], ['absolute' => TRUE]),
+          'weight' => -1,
+        ];
+      }
     }
   }
 

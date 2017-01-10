@@ -6,6 +6,7 @@ use Drupal\Core\Entity\EntityTypeManager;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Drupal\Core\Session\AccountProxy;
 use Drupal\node\Entity\Node;
+use Drupal\user\Entity\User;
 
 /**
  * Entity Stages Main Service.
@@ -14,6 +15,7 @@ class EntityStagesService {
 
   public $request;
   public $currentUser;
+  public $currentUserEntity;
   public $entityTypeManager;
 
   /**
@@ -24,8 +26,10 @@ class EntityStagesService {
     AccountProxy $currentUser,
     EntityTypeManager $entityTypeManager
     ) {
+    $currentUserEntity = User::load($currentUser->id());
     $this->request = $requestStack->getCurrentRequest();
     $this->currentUser = $currentUser;
+    $this->currentUserEntity = $currentUserEntity;
     $this->entityTypeManager = $entityTypeManager;
   }
 
@@ -33,15 +37,16 @@ class EntityStagesService {
    * Evaluate if the passed Node need Moderation.
    */
   public function needModeration(Node $currentEntity, Node $revisionEntity = NULL) {
+    $needModeration = FALSE;
     // Compare current Node and revision Node.
     if ($currentEntity && $revisionEntity) {
 
     }
     else {
-      $getNodeRevisions = $this->getRevisionIds($currentEntity);
+      $getNotModerateContents = $this->getImmoderateRevisions($currentEntity);
     }
     // Be able to scan on Node if needs validation or not using custom fields.
-    return FALSE;
+    return $getNotModerateContents;
   }
 
   /**
@@ -51,9 +56,47 @@ class EntityStagesService {
     $result = $this->entityTypeManager->getStorage('node')->getQuery()
       ->allRevisions()
       ->condition($node->getEntityType()->getKey('id'), $node->id())
-      ->sort($node->getEntityType()->getKey('revision'), 'DESC')
       ->execute();
-    return array_keys($result);
+    return $result;
+  }
+
+  /**
+   * Get versions waiting to be validated.
+   */
+  public function getImmoderateRevisions(Node $node) {
+
+    // Get existing revisions.
+    $getNodeRevisions = $this->getRevisionIds($node);
+
+    // Check expecting to be validated versions.
+    if ($getNodeRevisions) {
+      foreach ($getNodeRevisions as $key => $value) {
+        if ($this->isRevisionModerated($key)) {
+          unset($getNodeRevisions[$key]);
+        }
+      }
+    }
+
+    return $getNodeRevisions;
+  }
+
+  /**
+   * Return True is revision is moderated False otherwise.
+   */
+  public function isRevisionModerated($revisionId) {
+    // Get Storage.
+    $getNodeStorage = $this->entityTypeManager->getStorage('node');
+
+    // Load Node and Revision.
+    $loadRevision = $getNodeStorage->loadRevision($revisionId);
+    $nodeLoad = $getNodeStorage->load($loadRevision->id());
+
+    // Return boolean.
+    return
+      !$loadRevision ||
+      ($loadRevision && $loadRevision->isDefaultRevision()) ||
+      $loadRevision->changed->value < $nodeLoad->changed->value ||
+      !$this->currentUserEntity->hasRole('administrator');
   }
 
 }

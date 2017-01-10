@@ -5,7 +5,6 @@ namespace Drupal\entity_stages\Manager;
 use Drupal\Core\Url;
 use Drupal\Core\Site\Settings;
 use Drupal\node\Entity\Node;
-use Drupal\user\Entity\User;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
 
@@ -156,24 +155,9 @@ class ViewManager {
       // Filter results before pre render.
       foreach ($view->result as $index => $result) {
         // If some condtions are met ignore the result.
-        if (!$result->_entity) {
-          unset($view->result[$index]);
-          continue;
-        }
-
-        // Load entities.
-        $currentEntity = Node::load($result->_entity->nid->value);
-        $userLoad = User::load($currentEntity->uid->target_id);
-        $isAdmin = $userLoad->hasRole('administrator');
-        $revisionIsOlderThanCurrent = $result->_entity->changed->value < $currentEntity->changed->value;
-        $needModerationOne = $entityStagesService->needModeration($currentEntity);
-        $needModerationTwo = $entityStagesService->needModeration($currentEntity, $result->_entity);
-
-        // If some condtions are met ignore the result.
         if (
-          $result->_entity->isDefaultRevision() && $currentEntity->isPublished() ||
-          $revisionIsOlderThanCurrent ||
-          $isAdmin
+          !$result->_entity ||
+          $entityStagesService->isRevisionModerated($result->_entity->vid->value)
         ) {
           unset($view->result[$index]);
         }
