@@ -1,0 +1,16 @@
+{
+  "name": "drupal/diff",
+  "description": "Stages and allow entity revision validation",
+  "type": "drupal-module",
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "Luis Severino (7rin0)",
+      "homepage": "https://www.drupal.org/u/7rin0"
+    }
+  ],
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/entity_stages",
+    "source": "http://cgit.drupalcode.org/diff"
+  }
+}
