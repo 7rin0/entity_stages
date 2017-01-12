@@ -17,71 +17,85 @@ use Drupal\entity_stages\Manager\FormManager;
 use Drupal\entity_stages\Manager\ViewManager;
 
 /**
+ * Temporary solution to return handlers.
+ */
+function getHandlers() {
+  $handlers = [
+    'ElementManager' => new ElementManager(),
+    'EntityManager' => new EntityManager(),
+    'FormManager' => new FormManager(),
+    'ViewManager' => new ViewManager(),
+  ];
+
+  return $handlers;
+}
+
+/**
  * Implements entity_stages_preprocess_views_view_table().
  */
 function entity_stages_preprocess_views_view_table(&$variables) {
-  ViewManager::_preprocessViewsViewTable($variables);
+  getHandlers()['ViewManager']->_preprocessViewsViewTable($variables);
 }
 
 /**
  * Implements hook_views_post_execute().
  */
 function entity_stages_views_post_execute(ViewExecutable $view) {
-  ViewManager::_viewsPostExecute($view);
+  getHandlers()['ViewManager']->_viewsPostExecute($view);
 }
 
 /**
  * Implements hook_views_query_alter().
  */
 function entity_stages_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
-  ViewManager::_viewsQueryAlter($view, $query);
+  getHandlers()['ViewManager']->_viewsQueryAlter($view, $query);
 }
 
 /**
  * Implements hook_views_data_alter().
  */
 function entity_stages_views_data_alter(array &$data) {
-  ViewManager::_viewsDataAlter($data);
+  getHandlers()['ViewManager']->_viewsDataAlter($data);
 }
 
 /**
  * Implements hook_form_alter().
  */
 function entity_stages_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  FormManager::_hookFormAlter($form, $form_state, $form_id);
+  getHandlers()['FormManager']->_hookFormAlter($form, $form_state, $form_id);
 }
 
 /**
  * Implements hook_menu_local_tasks_alter().
  */
 function entity_stages_menu_local_tasks_alter(&$data, $route_name) {
-  ElementManager::_menuLocalTasksAlter($data, $route_name);
+  getHandlers()['ElementManager']->_menuLocalTasksAlter($data, $route_name);
 }
 
 /**
  * Implements hook_theme_registry_alter().
  */
 function entity_stages_theme_registry_alter(&$theme_registry) {
-  ElementManager::_themeRegistryAlter($theme_registry);
+  getHandlers()['ElementManager']->_themeRegistryAlter($theme_registry);
 }
 
 /**
  * Implements hook_entity_operation_alter().
  */
 function entity_stages_entity_operation_alter(array &$operations, EntityInterface $entity) {
-  ElementManager::_entityOperationAlter($operations, $entity);
+  getHandlers()['ElementManager']->_entityOperationAlter($operations, $entity);
 }
 
 /**
  * Implements hook_entity_base_field_info().
  */
 function entity_stages_entity_base_field_info(EntityTypeInterface $entity_type) {
-  return EntityManager::_entityBaseFieldInfo($entity_type);
+  return getHandlers()['EntityManager']->_entityBaseFieldInfo($entity_type);
 }
 
 /**
  * Implements hook_node_presave().
  */
 function entity_stages_node_presave(Node $node) {
-  EntityManager::_nodePresave($node);
+  getHandlers()['EntityManager']->_nodePresave($node);
 }
