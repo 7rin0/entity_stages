@@ -16,5 +16,5 @@ publish entity stages:
   title: 'Allowed to publish entity stages'
   description: 'Allowed to publish content directly bypassing moderation.'
 
-# permission_callbacks:
-  # - \Drupal\entity_stages\Access\EntityStagesAccess::defaultPermissions
+permission_callbacks:
+  - \Drupal\entity_stages\Access\EntityStagesAccess::defaultPermissions
