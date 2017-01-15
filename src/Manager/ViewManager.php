@@ -225,7 +225,8 @@ class ViewManager {
       );
       // Add left join for node table from the node_revision table.
       $query->addRelationship('nfd', $join, 'node_field_data');
-      // $query->addRelationship('ur', $joinUserRoles, 'user__roles');.
+      $query->addRelationship('ur', $joinUserRoles, 'user__roles');
+
       // Filter by type.
       if ($getType == 'All' || empty($getType)) {
         $query->where[1]['conditions'] = [];
@@ -238,10 +239,16 @@ class ViewManager {
         ];
       }
 
+      $query->where[1]['conditions'][] = [
+        'field' => 'ur.roles_target_id',
+        'value' => 'administrator',
+        'operator' => '!=',
+      ];
+
       // Filter by node id.
       if ($getNid && (int) $getNid) {
         $query->where[1]['conditions'][] = [
-          'field' => 'nid',
+          'field' => 'nfd.nid',
           'value' => $getNid,
           'operator' => '=',
         ];
