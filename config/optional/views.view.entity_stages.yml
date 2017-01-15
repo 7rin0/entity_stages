@@ -80,7 +80,7 @@ display:
           columns:
             nid: nid
             title: title
-            nothing: nothing
+            type: type
             status: status
             vid: vid
             revision_uid: revision_uid
@@ -102,7 +102,7 @@ display:
               separator: ''
               empty_column: false
               responsive: ''
-            nothing:
+            type:
               sortable: true
               default_sort_order: asc
               align: ''
@@ -292,18 +292,18 @@ display:
           entity_type: node
           entity_field: title
           plugin_id: field
-        nothing:
-          id: nothing
-          table: views
-          field: nothing
+        type:
+          id: type
+          table: node_revision
+          field: type
           relationship: none
           group_type: group
           admin_label: ''
           label: Type
           exclude: false
           alter:
-            alter_text: true
-            text: '-'
+            alter_text: false
+            text: ''
             make_link: false
             path: ''
             absolute: false
@@ -339,8 +339,24 @@ display:
           empty: ''
           hide_empty: false
           empty_zero: false
-          hide_alter_empty: false
-          plugin_id: custom
+          hide_alter_empty: true
+          click_sort_column: target_id
+          type: entity_reference_label
+          settings:
+            link: true
+          group_column: target_id
+          group_columns: {  }
+          group_rows: true
+          delta_limit: 0
+          delta_offset: 0
+          delta_reversed: false
+          delta_first_last: false
+          multi_type: separator
+          separator: ', '
+          field_api_classes: false
+          entity_type: node
+          entity_field: type
+          plugin_id: field
         status:
           id: status
           table: node_field_revision

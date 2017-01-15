@@ -40,6 +40,13 @@ function entity_stages_preprocess_views_view_table(&$variables) {
 /**
  * Implements hook_views_post_execute().
  */
+function entity_stages_views_pre_execute(ViewExecutable $view) {
+  // kpr($view->query->query()); die();
+}
+
+/**
+ * Implements hook_views_post_execute().
+ */
 function entity_stages_views_post_execute(ViewExecutable $view) {
   getHandlers()['ViewManager']->_viewsPostExecute($view);
 }

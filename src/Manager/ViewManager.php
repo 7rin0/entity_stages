@@ -69,9 +69,6 @@ class ViewManager {
         ['absolute' => TRUE]
         )->toString();
 
-        // Add Node type to Type column.
-        $row['columns']['nothing']['content'][0]['field_output']['#markup'] = ucfirst($currentEntity->getType());
-
         // Add return page.
         $contentModerationPage = '?destination=' . Url::fromRoute(
           'view.entity_stages.default_page', [], ['absolute' => TRUE]
@@ -159,7 +156,7 @@ class ViewManager {
           !$result->_entity ||
           $entityStagesService->isRevisionModerated($result->_entity->vid->value)
         ) {
-          unset($view->result[$index]);
+          // unset($view->result[$index]);.
         }
       }
 
@@ -184,33 +181,61 @@ class ViewManager {
       $getRequest = \Drupal::request();
       $getType = $getRequest->get('type');
       $getNid = $getRequest->get('nid');
+      $getOrder = $getRequest->get('order');
       $getViewsJoinManager = \Drupal::service('plugin.manager.views.join');
+      $query->fields['langcode']['table'] = 'node_revision';
+      $query->addTable('node_revision');
 
+      // Update sort by type table.
+      if ($getOrder == 'type') {
+        $query->orderby[0]['field'] = 'nfd.type';
+      }
+
+      // Join's.
+      $join = $getViewsJoinManager->createInstance(
+        'standard',
+        [
+          'type' => 'INNER',
+          'table' => 'node_field_data',
+          'field' => 'nid',
+          'left_table' => 'node_revision',
+          'left_field' => 'nid',
+          'operator' => '=',
+          'adjusted' => TRUE,
+          'extra' => array(
+            0 => array(
+              'left_field' => 'vid',
+              'field' => 'vid',
+              'operator' => '!=',
+            ),
+          ),
+        ]
+      );
+      $joinUserRoles = $getViewsJoinManager->createInstance(
+        'standard',
+        [
+          'type' => 'INNER',
+          'table' => 'user__roles',
+          'field' => 'entity_id',
+          'left_table' => 'node_revision',
+          'left_field' => 'revision_uid',
+          'operator' => '=',
+          'adjusted' => TRUE,
+        ]
+      );
+      // Add left join for node table from the node_revision table.
+      $query->addRelationship('nfd', $join, 'node_field_data');
+      // $query->addRelationship('ur', $joinUserRoles, 'user__roles');.
       // Filter by type.
-      if ($getType) {
-        if ($getType == 'All') {
-          $query->where[1]['conditions'] = [];
-        }
-        else {
-          $join = $getViewsJoinManager->createInstance(
-            'standard',
-            [
-              'table' => 'node_field_data',
-              'field' => 'nid',
-              'left_table' => 'node_revision',
-              'left_field' => 'nid',
-              'operator' => '=',
-              'adjusted' => TRUE,
-            ]
-          );
-          // Add left join for node table from the node_revision table.
-          $query->addRelationship('node_field_data', $join, 'node_field_data');
-          $query->where[1]['conditions'][0] = [
-            'field' => 'node_field_data.type',
-            'value' => $query->where[1]['conditions'][0]['value'],
-            'operator' => '=',
-          ];
-        }
+      if ($getType == 'All' || empty($getType)) {
+        $query->where[1]['conditions'] = [];
+      }
+      else {
+        $query->where[1]['conditions'][0] = [
+          'field' => 'nfd.type',
+          'value' => $query->where[1]['conditions'][0]['value'],
+          'operator' => '=',
+        ];
       }
 
       // Filter by node id.
@@ -221,6 +246,7 @@ class ViewManager {
           'operator' => '=',
         ];
       }
+
     }
   }
 
