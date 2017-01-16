@@ -49,7 +49,10 @@ class ViewManager {
          ['absolute' => TRUE]
         )->toString();
 
-        // Accepter revision/modification.
+        // Edit page.
+        $editPageUrl = $pageUrl . '/edit';
+
+        // Accepter revision.
         $acceptRevision = Url::fromRoute(
         'node.revision_revert_confirm',
         [
@@ -59,7 +62,7 @@ class ViewManager {
         ['absolute' => TRUE]
         )->toString();
 
-        // Refuser revision/modification.
+        // Refuser revision.
         $refuserRevision = Url::fromRoute(
         'node.revision_delete_confirm',
         [
@@ -108,6 +111,12 @@ class ViewManager {
           'enabled' => 1,
           'label' => t('View'),
           'url' => $pageUrl,
+        ];
+        $linksStructure['edit'] = [
+          'target' => 'normal',
+          'enabled' => 1,
+          'label' => t('Edit'),
+          'url' => $editPageUrl,
         ];
         $linksStructure['accept'] = [
           'target' => 'normal',
@@ -183,13 +192,25 @@ class ViewManager {
       $getNid = $getRequest->get('nid');
       $getOrder = $getRequest->get('order');
       $getViewsJoinManager = \Drupal::service('plugin.manager.views.join');
+      $language = \Drupal::languageManager()->getCurrentLanguage()->getId();
+
+      // Update query definitions.
       $query->fields['langcode']['table'] = 'node_revision';
       $query->addTable('node_revision');
+      $query->addTable('node_field_revision');
 
       // Update sort by type table.
-      if ($getOrder == 'type') {
-        $query->orderby[0]['field'] = 'nfd.type';
-      }
+      $query->orderby[0]['field'] = $getOrder == 'type' ? 'nfd.type' : $query->orderby[0]['field'];
+      $query->orderby[0]['field'] = str_replace(
+        'node_field_revision.nid',
+        'node_field_revision.vid',
+        $query->orderby[0]['field']
+      );
+
+      // Get User Admin and User where content is auto validated.
+      $entityQuery = \Drupal::entityQuery('user');
+      $entityQuery->condition('roles', 'administrator');
+      $entity_ids = $entityQuery->execute();
 
       // Join's.
       $join = $getViewsJoinManager->createInstance(
@@ -202,15 +223,22 @@ class ViewManager {
           'left_field' => 'nid',
           'operator' => '=',
           'adjusted' => TRUE,
+          'extraOperator' => 'AND',
           'extra' => array(
             0 => array(
               'left_field' => 'vid',
               'field' => 'vid',
               'operator' => '!=',
             ),
+            1 => array(
+              'field' => 'langcode',
+              'value' => $language,
+              'operator' => '=',
+            ),
           ),
         ]
       );
+
       $joinUserRoles = $getViewsJoinManager->createInstance(
         'standard',
         [
@@ -221,8 +249,17 @@ class ViewManager {
           'left_field' => 'revision_uid',
           'operator' => '=',
           'adjusted' => TRUE,
+          'extraOperator' => 'AND',
+          'extra' => array(
+            0 => array(
+              'field' => 'entity_id',
+              'value' => $entity_ids,
+              'operator' => 'NOT IN',
+            ),
+          ),
         ]
       );
+
       // Add left join for node table from the node_revision table.
       $query->addRelationship('nfd', $join, 'node_field_data');
       $query->addRelationship('ur', $joinUserRoles, 'user__roles');
@@ -238,12 +275,6 @@ class ViewManager {
           'operator' => '=',
         ];
       }
-
-      $query->where[1]['conditions'][] = [
-        'field' => 'ur.roles_target_id',
-        'value' => 'administrator',
-        'operator' => '!=',
-      ];
 
       // Filter by node id.
       if ($getNid && (int) $getNid) {

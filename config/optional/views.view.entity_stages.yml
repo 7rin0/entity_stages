@@ -34,7 +34,7 @@ display:
         type: views_query
         options:
           disable_sql_rewrite: false
-          distinct: false
+          distinct: true
           replica: false
           query_comment: ''
           query_tags: {  }
@@ -785,6 +785,76 @@ display:
           entity_type: node
           entity_field: type
           plugin_id: bundle
+        title:
+          id: title
+          table: node_field_revision
+          field: title
+          relationship: none
+          group_type: group
+          admin_label: ''
+          operator: allwords
+          value: ''
+          group: 1
+          exposed: true
+          expose:
+            operator_id: title_op
+            label: Search
+            description: ''
+            use_operator: false
+            operator: title_op
+            identifier: title
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+              anonymous: '0'
+              administrator: '0'
+              admin_portail: '0'
+              moderateur: '0'
+              contributeur: '0'
+              admin_societe: '0'
+              membre_societe: '0'
+              admin_entite_d_achat: '0'
+              membre_entite_d_achat: '0'
+              admin_dgatech: '0'
+              membre_dgatech: '0'
+              admin_pme_pmi: '0'
+              membre_pme_pmi: '0'
+              admin_mris: '0'
+              membre_mris: '0'
+              membre_rfi: '0'
+              admin_isai: '0'
+              membre_initiatives_spontanees: '0'
+              membre_agora_des_innovations: '0'
+              admin_rapid: '0'
+              membre_rapid: '0'
+              admin_otan: '0'
+              admin_cisia: '0'
+              membre_cisia: '0'
+              admin_rnpa: '0'
+              admin_normotan: '0'
+              admin_gemo: '0'
+              membre_rnpa_normotan_gemo: '0'
+              membre_news_actualites: '0'
+          is_grouped: false
+          group_info:
+            label: Titre
+            description: null
+            identifier: title
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items:
+              1: {  }
+              2: {  }
+              3: {  }
+          entity_type: node
+          entity_field: title
+          plugin_id: string
       sorts:
         changed:
           id: changed
