@@ -1,0 +1,11 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - entity_stages
+id: entity_stages_accept_action
+label: 'Accept Update'
+type: node
+plugin: entity_stages_accept_action
+configuration: {  }

@@ -3,3 +3,68 @@
 /**
  * @file
  */
+
+use Drupal\system\Entity\Action;
+use Drupal\views\Entity\View;
+use Symfony\Component\Yaml\Yaml;
+use Drupal\Core\Config\InstallStorage;
+use Drupal\Core\Config\FileStorage;
+
+/**
+ * Save the bulk accept action to config.
+ */
+function entity_stages_update_8100() {
+  if (!Action::load('entity_stages_accept_action')) {
+    $entity_type_manager = \Drupal::entityTypeManager();
+    $module_handler = \Drupal::moduleHandler();
+
+    // Save the bulk delete action to config.
+    $config_install_path = $module_handler->getModule('entity_stages')->getPath() . '/' . InstallStorage::CONFIG_INSTALL_DIRECTORY;
+    $storage = new FileStorage($config_install_path);
+    $entity_type_manager
+       ->getStorage('action')
+       ->create($storage->read('system.action.entity_stages_accept_action'))
+       ->trustData()
+       ->save();
+  }
+  if (!Action::load('entity_stages_reject_action')) {
+    $entity_type_manager = \Drupal::entityTypeManager();
+    $module_handler = \Drupal::moduleHandler();
+
+    // Save the bulk delete action to config.
+    $config_install_path = $module_handler->getModule('entity_stages')->getPath() . '/' . InstallStorage::CONFIG_INSTALL_DIRECTORY;
+    $storage = new FileStorage($config_install_path);
+    $entity_type_manager
+       ->getStorage('action')
+       ->create($storage->read('system.action.entity_stages_reject_action'))
+       ->trustData()
+       ->save();
+  }
+}
+
+/**
+ * Creates the new default entity stages view.
+ */
+function entity_stages_update_8101() {
+  $viewEntityStagesNotExist = !View::load('entity_stages') && \Drupal::moduleHandler()->moduleExists('views');
+  $message = $viewEntityStagesNotExist ?
+    'The new entity_stages view has been created.' : 'Not creating a entity_stages view since it already exists.';
+
+  // Only create if the entity stages view doesn't exist and views is enabled.
+  if ($moduleAndViewExists) {
+    $config_path = drupal_get_path('module', 'entity_stages') . '/config/install/views.view.entity_stages.yml';
+    $data = Yaml::parse($config_path);
+    \Drupal::configFactory()->getEditable('views.view.entity_stages')->setData($data)->save(TRUE);
+  }
+
+  return $message;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function entity_stages_uninstall() {
+  Drupal::configFactory()->getEditable('system.action.entity_stages_accept_action')->delete();
+  Drupal::configFactory()->getEditable('system.action.entity_stages_reject_action')->delete();
+  Drupal::configFactory()->getEditable('views.view.entity_stages')->delete();
+}
