@@ -17,6 +17,7 @@ class EntityStagesService {
   public $currentUser;
   public $currentUserEntity;
   public $entityTypeManager;
+  public $nodeStorage;
 
   /**
    * Entity Stages Service's Constructor.
@@ -31,6 +32,7 @@ class EntityStagesService {
     $this->currentUser = $currentUser;
     $this->currentUserEntity = $currentUserEntity;
     $this->entityTypeManager = $entityTypeManager;
+    $this->nodeStorage = $entityTypeManager->getStorage('node');
   }
 
   /**
@@ -88,8 +90,8 @@ class EntityStagesService {
     $getNodeStorage = $this->entityTypeManager->getStorage('node');
 
     // Load Node and Revision.
-    $loadRevision = $getNodeStorage->loadRevision($revisionId);
-    $nodeLoad = $getNodeStorage->load($loadRevision->id());
+    $loadRevision = $this->nodeStorage->loadRevision($revisionId);
+    $nodeLoad = $this->nodeStorage->load($loadRevision->id());
 
     // Return boolean.
     return
@@ -97,6 +99,30 @@ class EntityStagesService {
       ($loadRevision && $loadRevision->isDefaultRevision()) ||
       $loadRevision->changed->value < $nodeLoad->changed->value ||
       !$this->currentUserEntity->hasRole('administrator');
+  }
+
+  /**
+   *
+   */
+  public function moderateRevision($entity, $revision_id, $action) {
+    $moderateThisRevision = $this->nodeStorage->loadRevision($revision_id);
+
+    // Do not moderate this node => revision
+    // if nid dont match for some reason to avoid security issues.
+    if ($moderateThisRevision->id() == $entity->id()) {
+      if ($action == 'accept') {
+        $moderateThisRevision->isDefaultRevision(TRUE);
+        // And field must be set to accepted.
+        $moderateThisRevision->set('entity_stages_revision_status', 1);
+      }
+      elseif ($action == 'reject') {
+        // And field must be set to rejected.
+        $moderateThisRevision->set('entity_stages_revision_status', 0);
+      }
+      // Save Modifications.
+      $moderateThisRevision->setNewRevision(FALSE);
+      $moderateThisRevision->save();
+    }
   }
 
 }

@@ -20,20 +20,18 @@ class EntityManager {
 
     if ($entity_type->id() == 'node') {
       $fields['entity_stages_current_status'] =
-        BaseFieldDefinition::create('boolean')
+        BaseFieldDefinition::create('integer')
           ->setLabel(t('Entity Stages - Current Status'))
-          ->setDefaultValue(1)
+          ->setDefaultValue(NULL)
           ->setRevisionable(TRUE)
-          ->setTranslatable(TRUE)
-          ->setComputed(TRUE);
+          ->setTranslatable(TRUE);
 
       $fields['entity_stages_revision_status'] =
-        BaseFieldDefinition::create('boolean')
+        BaseFieldDefinition::create('integer')
           ->setLabel(t('Entity Stages - Revision Status'))
-          ->setDefaultValue(0)
+          ->setDefaultValue(NULL)
           ->setRevisionable(TRUE)
-          ->setTranslatable(TRUE)
-          ->setComputed(TRUE);
+          ->setTranslatable(TRUE);
 
     }
 
@@ -47,13 +45,12 @@ class EntityManager {
     // Current User.
     $loadCurrentUser = User::load(\Drupal::currentUser()->id());
     $requireValidation =
-    !$loadCurrentUser->hasRole('administrator') &&
-    !$loadCurrentUser->hasPermission('publish entity stages');
+    $loadCurrentUser->hasRole('administrator') ||
+    $loadCurrentUser->hasPermission('publish entity stages');
 
     // Default entity stages status.
-    $node->set('entity_stages_current_status', !$requireValidation);
-    $node->set('entity_stages_revision_status', !$requireValidation);
-
+    // $node->set('entity_stages_current_status', $requireValidation);
+    // $node->set('entity_stages_revision_status', $requireValidation);.
     // If User hasnt permission to publish or modify without validation
     // the content status is either unpublished or
     // published and waiting for validation.

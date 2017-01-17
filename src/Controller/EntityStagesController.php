@@ -7,6 +7,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\node\Entity\Node;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\Request;
+use Drupal\system\Entity\Action;
 
 /**
  * Entity Stages Main Controller.
@@ -39,7 +40,44 @@ class EntityStagesController extends ControllerBase {
     ['absolute' => TRUE]
     )->toString();
 
-    return new RedirectResponse($targetUrl);
+    // Redirect.
+    return new RedirectResponse($this->getEntityStagesViewUrl());
+  }
+
+  /**
+   * Accept action.
+   */
+  public function acceptAction($entity_id, $revision_id) {
+
+    // Update node info.
+    $acceptAction = Action::load('entity_stages_accept_action');
+    $loadEntity = Node::load($entity_id);
+    $acceptAction->execute([$loadEntity]);
+
+    // Redirect.
+    return new RedirectResponse($this->getEntityStagesViewUrl());
+  }
+
+  /**
+   * Reject action.
+   */
+  public function rejectAction($entity_id, $revision_id) {
+    // Update node info.
+    $rejectAction = Action::load('entity_stages_reject_action');
+    $loadEntity = Node::load($entity_id);
+    $rejectAction->execute([$loadEntity]);
+
+    // Redirect.
+    return new RedirectResponse($this->getEntityStagesViewUrl());
+  }
+
+  /**
+   * Get Entity Stages View Url.
+   */
+  function getEntityStagesViewUrl() {
+    return Url::fromRoute(
+      'view.entity_stages.default_page', [], ['absolute' => TRUE]
+      )->toString();
   }
 
 }

@@ -16,17 +16,27 @@ use Drupal\Core\Session\AccountInterface;
  */
 class RejectAction extends ActionBase {
 
+  public $entityStagesService;
+
+  protected $entityRevisionId;
+
   /**
    * Class constructor.
    */
   public function __construct() {
+    $currentRequest = \Drupal::request();
+    $entityStagesService = \Drupal::service('entity_stages.main.service');
+    $this->entityRevisionId = $currentRequest->get('revision_id');
+    $this->entityStagesService = $entityStagesService;
   }
 
   /**
    * {@inheritdoc}
    */
   public function execute($entity = NULL) {
-    // kpr($entity);die();
+    $this->entityStagesService->moderateRevision(
+      $entity, $this->entityRevisionId, 'reject'
+    );
   }
 
   /**

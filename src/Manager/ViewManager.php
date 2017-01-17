@@ -54,20 +54,20 @@ class ViewManager {
 
         // Accepter revision.
         $acceptRevision = Url::fromRoute(
-        'node.revision_revert_confirm',
+        'entity_stages.accept.content',
         [
-          'node' => $currentEntity->id(),
-          'node_revision' => $revisionEntity->getRevisionId(),
+          'entity_id' => $currentEntity->id(),
+          'revision_id' => $revisionEntity->getRevisionId(),
         ],
         ['absolute' => TRUE]
         )->toString();
 
         // Refuser revision.
         $refuserRevision = Url::fromRoute(
-        'node.revision_delete_confirm',
+        'entity_stages.reject.content',
         [
-          'node' => $currentEntity->id(),
-          'node_revision' => $revisionEntity->getRevisionId(),
+          'entity_id' => $currentEntity->id(),
+          'revision_id' => $revisionEntity->getRevisionId(),
         ],
         ['absolute' => TRUE]
         )->toString();
@@ -275,6 +275,11 @@ class ViewManager {
           'operator' => '=',
         ];
       }
+      $query->where[1]['conditions'][] = [
+        'field' => 'node_field_revision.entity_stages_revision_status',
+        'value' => NULL,
+        'operator' => 'IS NULL',
+      ];
 
       // Filter by node id.
       if ($getNid && (int) $getNid) {

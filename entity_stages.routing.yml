@@ -1,15 +1,35 @@
+# Soon, Entity Stages Administration page.
 entity_stages.default.routing:
-  path: '/admin/config/entity_stages/administration'
+  path: '/admin/config/entity-stages/administration'
   defaults:
     _title: 'Entity Stages - Administration'
     _controller: '\Drupal\entity_stages\Controller\EntityStagesController::indexAction'
   requirements:
     _permission: 'administer'
 
+# Publish a content to be reviewed.
 entity_stages.publish.content:
-  path: '/admin/entity_stages/publish/{entity_id}'
+  path: '/admin/entity-stages/publish/{entity_id}'
   defaults:
     _title: 'Entity Stages - Publish Content'
     _controller: '\Drupal\entity_stages\Controller\EntityStagesController::publishAction'
+  requirements:
+    _permission: 'administer'
+
+# Accept revision to be reviewed.
+entity_stages.accept.content:
+  path: '/admin/entity-stages/accept/{entity_id}/{revision_id}'
+  defaults:
+    _title: 'Entity Stages - Accept Modification'
+    _controller: '\Drupal\entity_stages\Controller\EntityStagesController::acceptAction'
+  requirements:
+    _permission: 'administer'
+
+# Reject revision to be reviewed.
+entity_stages.reject.content:
+  path: '/admin/entity-stages/reject/{entity_id}/{revision_id}'
+  defaults:
+    _title: 'Entity Stages - Reject Modification'
+    _controller: '\Drupal\entity_stages\Controller\EntityStagesController::rejectAction'
   requirements:
     _permission: 'administer'
