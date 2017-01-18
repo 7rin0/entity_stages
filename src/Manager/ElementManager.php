@@ -45,7 +45,6 @@ class ElementManager {
   public function _menuLocalTasksAlter(&$data, $route_name) {
     $serviceLocalTask = \Drupal::service('plugin.manager.menu.local_task');
 
-    // Content tasks.
     // Routes were entity stages should be present as a task.
     // Content tasks.
     $nodeDefaultTasks = $serviceLocalTask->getLocalTasksForRoute('system.admin_content')[0];
@@ -62,10 +61,9 @@ class ElementManager {
     }
     $nodeDefaultTasksRouteNames['view.entity_stages.default_page'] = 'view.entity_stages.default_page';
     if (in_array($route_name, array_keys($nodeDefaultTasksRouteNames))) {
-      $data['tabs'][0] = $nodeDefaultTasksRouteNames;
       // Add Moderate content tab.
-      $entityStagesTitle = $data['tabs'][0]['view.entity_stages.default_page']['#link']['title'];
-      $entityStagesTitle = $entityStagesTitle ? $entityStagesTitle : t('Entity Stages');
+      $entityStagesTitle = isset($data['tabs'][0]['view.entity_stages.default_page']['#link']['title']) ? $data['tabs'][0]['view.entity_stages.default_page']['#link']['title'] : t('Entity Stages');
+      $data['tabs'][0] = $nodeDefaultTasksRouteNames;
       $data['tabs'][0]['view.entity_stages.default_page'] = [
         '#theme' => 'menu_local_task',
         '#active' => $route_name == 'view.entity_stages.default_page',
