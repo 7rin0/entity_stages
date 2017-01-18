@@ -18,7 +18,7 @@ class EntityManager {
   public function _entityBaseFieldInfo(EntityTypeInterface $entity_type) {
     $fields = [];
 
-    if ($entity_type->id() == 'node') {
+    if ($entity_type->id() == 'node' || $entity_type->id() == 'user') {
       $fields['entity_stages_current_status'] =
         BaseFieldDefinition::create('integer')
           ->setLabel(t('Entity Stages - Current Status'))
@@ -45,8 +45,8 @@ class EntityManager {
     // Current User.
     $loadCurrentUser = User::load(\Drupal::currentUser()->id());
     $requireValidation =
-    $loadCurrentUser->hasRole('administrator') ||
-    $loadCurrentUser->hasPermission('publish entity stages');
+    !$loadCurrentUser->hasRole('administrator') ||
+    !$loadCurrentUser->hasPermission('publish entity stages');
 
     // Default entity stages status.
     // $node->set('entity_stages_current_status', $requireValidation);

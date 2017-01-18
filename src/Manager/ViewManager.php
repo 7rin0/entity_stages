@@ -206,6 +206,8 @@ class ViewManager {
         'node_field_revision.vid',
         $query->orderby[0]['field']
       );
+      // Distinct values by user uid and entity nid.
+      $query->addGroupBy('nfd.nid');
 
       // Get User Admin and User where content is auto validated.
       $entityQuery = \Drupal::entityQuery('user');
