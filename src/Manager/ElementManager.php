@@ -43,49 +43,34 @@ class ElementManager {
    * Handles Drupal Module Related Form Alter.
    */
   public function _menuLocalTasksAlter(&$data, $route_name) {
+    $serviceLocalTask = \Drupal::service('plugin.manager.menu.local_task');
 
+    // Content tasks.
     // Routes were entity stages should be present as a task.
-    $allowedRoutes = [
-      'system.admin_content',
-      'entity.user.collection',
-      'view.entity_stages.default_page',
-    ];
-
-    // If entity stages is the current route.
-    if ($route_name == 'view.entity_stages.default_page') {
-      $data['tabs'][0][] = [
+    // Content tasks.
+    $nodeDefaultTasks = $serviceLocalTask->getLocalTasksForRoute('system.admin_content')[0];
+    foreach ($nodeDefaultTasks as $task_route => $value) {
+      $nodeDefaultTasksRouteNames[$value->getRouteName()] = array(
         '#theme' => 'menu_local_task',
-        '#active' => $route_name == 'system.admin_content',
+        '#active' => $value->getRouteName() == $route_name,
         '#link' => [
-          'title' => t('Content'),
-          'url' => Url::fromRoute(
-        'system.admin_content',
-        [],
-        ['absolute' => TRUE]
-          ),
+          'title' => $value->getTitle(),
+          'url' => Url::fromRoute($value->getRouteName(), [], ['absolute' => TRUE]),
+          'localized_options' => array('attributes' => array($value->getTitle())),
         ],
-      ];
-      $data['tabs'][0][] = [
-        '#theme' => 'menu_local_task',
-        '#active' => $route_name == 'entity.user.collection',
-        '#link' => [
-          'title' => t('People'),
-          'url' => Url::fromRoute(
-        'entity.user.collection',
-        [],
-        ['absolute' => TRUE]
-          ),
-        ],
-      ];
+      );
     }
-
-    if (in_array($route_name, $allowedRoutes)) {
-      // Add Entity Stages task.
-      $data['tabs'][0][] = [
+    $nodeDefaultTasksRouteNames['view.entity_stages.default_page'] = 'view.entity_stages.default_page';
+    if (in_array($route_name, array_keys($nodeDefaultTasksRouteNames))) {
+      $data['tabs'][0] = $nodeDefaultTasksRouteNames;
+      // Add Moderate content tab.
+      $entityStagesTitle = $data['tabs'][0]['view.entity_stages.default_page']['#link']['title'];
+      $entityStagesTitle = $entityStagesTitle ? $entityStagesTitle : t('Entity Stages');
+      $data['tabs'][0]['view.entity_stages.default_page'] = [
         '#theme' => 'menu_local_task',
         '#active' => $route_name == 'view.entity_stages.default_page',
         '#link' => [
-          'title' => t('Entity stages'),
+          'title' => $entityStagesTitle,
           'url' => Url::fromRoute(
             'view.entity_stages.default_page', [], ['absolute' => TRUE]
           ),
