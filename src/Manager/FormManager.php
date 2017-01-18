@@ -22,6 +22,12 @@ class FormManager {
       $form['#after_build'][] = 'Drupal\entity_stages\Manager\FormManager::_redirect_to_moderation_entity_stages_page';
       $form['#submit'][] = 'Drupal\entity_stages\Manager\FormManager::_redirect_to_moderation_entity_stages_page';
     }
+    // Update submit button if we are about to made a registration.
+    if ($form_state->getBuildInfo()['base_form_id'] == 'node_form') {
+      // If user hasnt enough rights alter label
+      // from registration to sumit.
+      $form['actions']['submit']['#value'] = t('Submit');
+    }
   }
 
   /**
