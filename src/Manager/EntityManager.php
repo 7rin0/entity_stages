@@ -42,28 +42,30 @@ class EntityManager {
    * Implements hook_node_presave().
    */
   public function _nodePresave(Node $node) {
+    // TODO: content type must be defined as entity stages type.
     // Current User.
-    $loadCurrentUser = User::load(\Drupal::currentUser()->id());
-    $requireValidation =
-    !$loadCurrentUser->hasRole('administrator') ||
-    !$loadCurrentUser->hasPermission('publish entity stages');
+    $accountProxy = \Drupal::currentUser();
+    $loadCurrentUser = User::load($accountProxy->id());
+    $requireValidation = !$loadCurrentUser->hasRole('administrator') && !$loadCurrentUser->hasPermission('publish entity stages');
 
     // Default entity stages status.
-    // $node->set('entity_stages_current_status', $requireValidation);
-    // $node->set('entity_stages_revision_status', $requireValidation);.
+    // Use entity_stages_current_status to node transictions.
+    // Use entity_stages_revision_status to revision transictions.
     // If User hasnt permission to publish or modify without validation
     // the content status is either unpublished or
     // published and waiting for validation.
-    if ($requireValidation) {
-      // If new starts as unpublished.
-      if ($node->isNew()) {
-        $node->set('status', 0);
-      }
-      // Else keep current revision.
-      else {
-        $node->set('status', $node->original->isPublished());
-        $node->isDefaultRevision(FALSE);
-        $node->original->isDefaultRevision(TRUE);
+    if ($accountProxy->isAuthenticated()) {
+      if ($requireValidation) {
+        // If new starts as unpublished.
+        if ($node->isNew()) {
+          $node->set('status', 0);
+        }
+        // Else keep current revision.
+        else {
+          $node->set('status', $node->original->isPublished());
+          $node->isDefaultRevision(FALSE);
+          $node->original->isDefaultRevision(TRUE);
+        }
       }
     }
   }
