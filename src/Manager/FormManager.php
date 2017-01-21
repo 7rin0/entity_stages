@@ -32,6 +32,7 @@ class FormManager {
       !$loadCurrentUser->hasPermission('publish entity stages');
       // If user hasnt enough rights alter label
       // from registration to sumit.
+      // TODO: Fix bouton.
       if ($requireValidation) {
         $form['actions']['submit']['#value'] = t('Submit');
       }
