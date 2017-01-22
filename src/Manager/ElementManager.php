@@ -27,9 +27,11 @@ class ElementManager {
   public function _entityOperationAlter(array &$operations, EntityInterface $entity) {
     if ($entity->getEntityTypeId() == 'node') {
       // Service Node Stages Checker.
+      $accountProxy = \Drupal::currentUser();
       $entityStagesService = \Drupal::service('entity_stages.main.service');
-      $needModerationOne = $entityStagesService->needModeration($entity);
-      if ($entityStagesService->needModeration($entity)) {
+      $allowedToModerate = $entityStagesService->allowedToModerate($entity->getType());
+
+      if ($allowedToModerate) {
         $operations['entity_stages_moderate'] = [
           'title' => t('Moderate'),
           'url' => Url::fromRoute('view.entity_stages.default_page', ['nid' => $entity->id()], ['absolute' => TRUE]),

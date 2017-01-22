@@ -36,6 +36,32 @@ class EntityStagesService {
   }
 
   /**
+   * Allowed to publish bypassing moderation.
+   */
+  public function allowedToPublish($nodeType, $user = NULL) {
+    $allowedToPublish =
+    $this->currentUserEntity->hasRole('administrator') ||
+    $this->currentUserEntity->hasPermission('publish entity stages') ||
+    $this->currentUserEntity->hasPermission('moderate ' . $nodeType . ' content publish') ||
+    $this->currentUserEntity->hasPermission('moderate ' . $nodeType . ' content modifications');
+
+    // Be able to scan on Node if needs validation or not using custom fields.
+    return $allowedToPublish;
+  }
+
+  /**
+   * Allowed to moderate.
+   */
+  public function allowedToModerate($nodeType, $user = NULL) {
+    $allowedToModerate =
+    $this->currentUserEntity->hasRole('administrator') ||
+    $this->currentUserEntity->hasPermission('moderate entity stages') ||
+    $this->currentUserEntity->hasPermission('moderate ' . $nodeType . ' content modifications');
+
+    return $allowedToModerate;
+  }
+
+  /**
    * Evaluate if the passed Node need Moderation.
    */
   public function needModeration(Node $currentEntity, Node $revisionEntity = NULL) {

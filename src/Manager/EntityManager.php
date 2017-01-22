@@ -5,7 +5,6 @@ namespace Drupal\entity_stages\Manager;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\node\Entity\Node;
-use Drupal\user\Entity\User;
 
 /**
  * Handles Drupal Form Elements Override.
@@ -42,11 +41,10 @@ class EntityManager {
    * Implements hook_node_presave().
    */
   public function _nodePresave(Node $node) {
-    // TODO: content type must be defined as entity stages type.
     // Current User.
     $accountProxy = \Drupal::currentUser();
-    $loadCurrentUser = User::load($accountProxy->id());
-    $requireValidation = !$loadCurrentUser->hasRole('administrator') && !$loadCurrentUser->hasPermission('publish entity stages');
+    $entityStagesService = \Drupal::service('entity_stages.main.service');
+    $allowedToPublish = $entityStagesService->allowedToPublish($node->getType());
 
     // Default entity stages status.
     // Use entity_stages_current_status to node transictions.
@@ -54,18 +52,16 @@ class EntityManager {
     // If User hasnt permission to publish or modify without validation
     // the content status is either unpublished or
     // published and waiting for validation.
-    if ($accountProxy->isAuthenticated()) {
-      if ($requireValidation) {
-        // If new starts as unpublished.
-        if ($node->isNew()) {
-          $node->set('status', 0);
-        }
-        // Else keep current revision.
-        else {
-          $node->set('status', $node->original->isPublished());
-          $node->isDefaultRevision(FALSE);
-          $node->original->isDefaultRevision(TRUE);
-        }
+    if ($accountProxy->isAuthenticated() && !$allowedToPublish) {
+      // If new starts as unpublished.
+      if ($node->isNew()) {
+        $node->set('status', 0);
+      }
+      // Else keep current revision.
+      else {
+        $node->set('status', $node->original->isPublished());
+        $node->isDefaultRevision(FALSE);
+        $node->original->isDefaultRevision(TRUE);
       }
     }
   }

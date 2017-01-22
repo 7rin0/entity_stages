@@ -4,7 +4,6 @@ namespace Drupal\entity_stages\Manager;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\user\Entity\User;
 
 /**
  * Handles Drupal Form Elements Override.
@@ -23,17 +22,20 @@ class FormManager {
       $form['#after_build'][] = 'Drupal\entity_stages\Manager\FormManager::_redirect_to_moderation_entity_stages_page';
       $form['#submit'][] = 'Drupal\entity_stages\Manager\FormManager::_redirect_to_moderation_entity_stages_page';
     }
+
     // Update submit button if we are about to made a registration.
     // Current User.
     if ($form_state->getBuildInfo()['base_form_id'] == 'node_form') {
-      $loadCurrentUser = User::load(\Drupal::currentUser()->id());
-      $requireValidation =
-      !$loadCurrentUser->hasRole('administrator') ||
-      !$loadCurrentUser->hasPermission('publish entity stages');
-      // If user hasnt enough rights alter label
-      // from registration to sumit.
-      // TODO: Fix bouton.
-      if ($requireValidation) {
+
+      // Get Node Type.
+      $nodeType = str_replace('node_', '', str_replace(['_edit_form', '_form'], '', $form['#form_id']));
+
+      // If user hasnt enough rights alter label.
+      $entityStagesService = \Drupal::service('entity_stages.main.service');
+      $allowedToPublish = $entityStagesService->allowedToPublish($nodeType);
+
+      // From registration to sumit.
+      if (!$allowedToPublish) {
         $form['actions']['submit']['#value'] = t('Submit');
       }
     }
