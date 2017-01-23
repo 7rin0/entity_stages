@@ -155,6 +155,7 @@ class ViewManager {
    */
   public function _viewsPostExecute(ViewExecutable $view) {
     // Alter only the post query of this view.
+    // kpr($view->build_info['query']->__toString());die();
     if ($view->storage->get('id') == 'entity_stages') {
       // Service Node Stages Checker.
       $entityStagesService = \Drupal::service('entity_stages.main.service');
@@ -184,6 +185,7 @@ class ViewManager {
    * Implements hook_views_query_alter().
    */
   public function _viewsQueryAlter(ViewExecutable $view, QueryPluginBase $query) {
+    // Mysql 5.7.16 -> SET SQL_MODE="";.
     if ($view->storage->get('id') == 'entity_stages') {
       $settings = Settings::getAll();
       $currentUser = \Drupal::currentUser();
@@ -207,8 +209,10 @@ class ViewManager {
         $query->orderby[0]['field']
       );
       // Distinct values by user uid and entity nid.
-      $query->addGroupBy('nfd.nid');
-
+      $query->addGroupBy('nfd.nid', 'DESC');
+      $query->addGroupBy('node_revision.nid');
+      $query->addGroupBy('node_field_revision.nid');
+      // kpr($query->groupby);die();
       // Get User Admin and User where content is auto validated.
       $entityQuery = \Drupal::entityQuery('user');
       $entityQuery->condition('roles', 'administrator');
@@ -291,7 +295,6 @@ class ViewManager {
           'operator' => '=',
         ];
       }
-
     }
   }
 
