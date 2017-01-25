@@ -31,6 +31,26 @@ function getHandlers() {
 }
 
 /**
+ * Implements hook_form_views_exposed_form_alter().
+ */
+function entity_stages_form_views_exposed_form_alter(&$form, &$form_state) {
+  $storageView = $form_state->getStorage()['view'];
+  $hasExposedField = isset($form['entity_stages_current_status']);
+  // TODO: Dynamic options
+  if ($storageView && empty($form['entity_stages_current_status']['#options']) && $hasExposedField) {
+    $form['entity_stages_current_status'] = array(
+      '#type'    => 'select',
+      '#size'    => NULL,
+      '#options' => [
+        '' => 'A',
+        0 => 'B',
+        1 => 'C',
+      ],
+    );
+  }
+}
+
+/**
  * Implements entity_stages_preprocess_views_view_table().
  */
 function entity_stages_preprocess_views_view_table(&$variables) {
