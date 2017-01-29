@@ -59,11 +59,9 @@ class EntityManager {
       }
       // Else keep current revision.
       else {
-        $node->set('status', $node->original->isPublished());
         $node->isDefaultRevision(FALSE);
         $node->original->isDefaultRevision(TRUE);
       }
     }
   }
-
 }

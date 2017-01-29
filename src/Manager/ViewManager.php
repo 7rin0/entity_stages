@@ -190,8 +190,6 @@ class ViewManager {
    * Implements hook_views_query_alter().
    */
   public function _viewsQueryAlter(ViewExecutable $view, QueryPluginBase $query) {
-    // select * from node_field_revision nfr right join node_field_data nfd ON nfr.nid=nfd.nid left join node_revision nr ON nfr.vid = nr.vid  where nfr.vid != nfd.vid AND nr.revision_uid NOT IN (1) ORDER BY nr.revision_timestamp DESC \G
-
     // Mysql 5.7.16 -> SET SQL_MODE="";.
     if ($view->storage->get('id') == 'entity_stages') {
       // Services.
@@ -209,7 +207,6 @@ class ViewManager {
       $language = \Drupal::languageManager()->getCurrentLanguage()->getId();
       $query->fields['langcode']['table'] = 'node_field_revision';
       $query->addField('node_field_revision', 'nid', 'node_field_revision_nid', ['functions' => 'groupby']);
-
 
       // Update sort by type table.
       $query->orderby[0]['field'] = $getOrder == 'type' ? 'nfd.type' : $query->orderby[0]['field'];
