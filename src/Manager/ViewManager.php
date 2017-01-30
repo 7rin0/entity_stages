@@ -28,11 +28,6 @@ class ViewManager {
       foreach ($variables['rows'] as $key => &$row) {
         // Get comparable revisions values.
         $revisionEntity = $view->result[$key]->_entity;
-        if(!method_exists($revisionEntity, 'id')) {
-          // kpr($view->result[$key]);
-          // kpr($revisionEntity);
-          // die();
-        }
         $currentEntity = Node::load($revisionEntity->id());
 
         // Create Operation URLs.
@@ -160,7 +155,6 @@ class ViewManager {
    */
   public function _viewsPostExecute(ViewExecutable $view) {
     // Alter only the post query of this view.
-    // kpr($view->build_info['query']->__toString());die();
     if ($view->storage->get('id') == 'entity_stages') {
       // Service Node Stages Checker.
       $entityStagesService = \Drupal::service('entity_stages.main.service');
@@ -217,9 +211,9 @@ class ViewManager {
       );
 
       // Filter by type.
-      foreach($query->where[1]['conditions'] as &$condition) {
-        if($condition['field'] == 'node_field_revision.type'){
-          if($getType == 'All' || empty($getType)){
+      foreach ($query->where[1]['conditions'] as &$condition) {
+        if ($condition['field'] == 'node_field_revision.type') {
+          if ($getType == 'All' || empty($getType)) {
             $condition = [
               'field' => 'nfd.type',
               'value' => "NOT NULL",
@@ -265,7 +259,7 @@ class ViewManager {
             'operator' => '=',
           ),
         ),
-        ]
+      ]
       );
 
       // Add left join for node table from the node_revision table.
@@ -329,7 +323,7 @@ class ViewManager {
     foreach ($pendingValidationRevisions as $key => $value) {
       $trueVid[$value->nfr_nid] = $value->nfr_vid;
     }
-    // Array values;
+    // Array values;.
     $trueVid = array_values($trueVid);
 
     return $trueVid;

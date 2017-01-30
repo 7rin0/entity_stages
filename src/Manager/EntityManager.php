@@ -31,7 +31,6 @@ class EntityManager {
           ->setDefaultValue(NULL)
           ->setRevisionable(TRUE)
           ->setTranslatable(TRUE);
-
     }
 
     return $fields;
@@ -64,4 +63,5 @@ class EntityManager {
       }
     }
   }
+
 }
