@@ -168,15 +168,6 @@ class ViewManager {
           // unset($view->result[$index]);.
         }
       }
-
-      // Update rows number and pager.
-      // $view->pager->setItemsPerPage(1000);.
-      // $nbRows = count($view->result);
-      // $view->total_items = $nbRows;
-      // $view->pager->total_items = $nbRows;
-      // $view->pager->updatePageInfo();
-      // $view->query->view->pager->total_items = $nbRows;
-      // $view->query->view->pager->updatePageInfo();
     }
   }
 
@@ -248,14 +239,14 @@ class ViewManager {
             'field' => 'vid',
             'operator' => '!=',
           ),
-          2 => array(
-            'left_field' => 'uid',
-            'field' => 'uid',
-            'operator' => '=',
-          ),
           1 => array(
             'field' => 'langcode',
             'value' => $language,
+            'operator' => '=',
+          ),
+          2 => array(
+            'left_field' => 'uid',
+            'field' => 'uid',
             'operator' => '=',
           ),
         ),
@@ -289,7 +280,11 @@ class ViewManager {
     $query = \Drupal::database()->select('node_field_revision', 'nfr');
     // Joins.
     $query->leftJoin('node_revision', 'nr', 'nfr.vid = nr.vid');
-    $query->leftJoin('node_field_data', 'nfd', 'nfr.nid = nfd.nid AND nfr.vid != nfd.vid ');
+    $query->leftJoin(
+      'node_field_data',
+      'nfd',
+      'nfr.nid = nfd.nid AND nfr.vid != nfd.vid AND nfr.changed > nfd.changed'
+    );
     // Fields.
     // -- Node field Data.
     $query->addField('nfd', 'title', 'nfd_title');
@@ -306,18 +301,18 @@ class ViewManager {
     $query->condition('nr.revision_uid', $entity_ids, 'NOT IN');
     $query->condition('nr.langcode', $langcode);
     $query->condition('nfr.langcode', $langcode);
+    $query->condition('nfd.langcode', $langcode);
     $query->condition(
       db_or()
         ->condition('nfr.entity_stages_revision_status', NULL, 'IS NULL')
         ->condition('nfr.entity_stages_revision_status', '4')
     );
-    $query->condition('nfd.langcode', $langcode);
     // Order by.
     $query->orderBy('nr.revision_timestamp', 'DESC');
     // Execute and fetch results.
     $pendingValidationRevisions = $query->execute()->fetchAll();
     // Extract valid vid.
-    $trueVid = [];
+    $trueVid = ['NULL'];
     // Do not change this! Reverse order to override last value to a given vid.
     krsort($pendingValidationRevisions);
     foreach ($pendingValidationRevisions as $key => $value) {
