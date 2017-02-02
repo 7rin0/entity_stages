@@ -48,6 +48,8 @@ class ElementManager {
     // Routes were entity stages should be present as a task.
     // Content tasks.
     $nodeDefaultTasks = $serviceLocalTask->getLocalTasksForRoute('system.admin_content')[0];
+
+    // Parse each related tab.
     foreach ($nodeDefaultTasks as $task_route => $value) {
       $nodeDefaultTasksRouteNames[$value->getRouteName()] = array(
         '#theme' => 'menu_local_task',
@@ -59,11 +61,19 @@ class ElementManager {
         ],
       );
     }
+
+    // Parse each existing tab.
+    $existingTabs = [];
+    foreach ($data['tabs'][0] as $task_route => $value) {
+      $routeName = $value['#link']['url']->getRouteName();
+      $existingTabs[$routeName] = $value;
+    }
+
     $nodeDefaultTasksRouteNames['view.entity_stages.default_page'] = 'view.entity_stages.default_page';
     if (in_array($route_name, array_keys($nodeDefaultTasksRouteNames))) {
       // Add Moderate content tab.
       $entityStagesTitle = isset($data['tabs'][0]['view.entity_stages.default_page']['#link']['title']) ? $data['tabs'][0]['view.entity_stages.default_page']['#link']['title'] : t('Entity Stages');
-      $data['tabs'][0] = $nodeDefaultTasksRouteNames;
+      $data['tabs'][0] = array_merge($existingTabs, $nodeDefaultTasksRouteNames);
       $data['tabs'][0]['view.entity_stages.default_page'] = [
         '#theme' => 'menu_local_task',
         '#active' => $route_name == 'view.entity_stages.default_page',
