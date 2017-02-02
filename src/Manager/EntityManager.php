@@ -21,14 +21,14 @@ class EntityManager {
       $fields['entity_stages_current_status'] =
         BaseFieldDefinition::create('integer')
           ->setLabel(t('Entity Stages - Current Status'))
-          ->setDefaultValue(NULL)
+          ->setDefaultValue(0)
           ->setRevisionable(TRUE)
           ->setTranslatable(TRUE);
 
       $fields['entity_stages_revision_status'] =
         BaseFieldDefinition::create('integer')
           ->setLabel(t('Entity Stages - Revision Status'))
-          ->setDefaultValue(NULL)
+          ->setDefaultValue(0)
           ->setRevisionable(TRUE)
           ->setTranslatable(TRUE);
     }

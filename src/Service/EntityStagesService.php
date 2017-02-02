@@ -128,7 +128,7 @@ class EntityStagesService {
   }
 
   /**
-   *
+   * Handles entity stages revision status.
    */
   public function moderateRevision($entity, $revision_id, $action) {
     $moderateThisRevision = $this->nodeStorage->loadRevision($revision_id);
@@ -143,7 +143,7 @@ class EntityStagesService {
       }
       elseif ($action == 'reject') {
         // And field must be set to rejected.
-        $moderateThisRevision->set('entity_stages_revision_status', 0);
+        $moderateThisRevision->set('entity_stages_revision_status', 2);
       }
       // Save Modifications.
       $moderateThisRevision->setNewRevision(FALSE);

@@ -37,6 +37,7 @@ class FormManager {
       // From registration to sumit.
       if (!$allowedToPublish) {
         $form['actions']['submit']['#value'] = t('Submit');
+        $form['actions']['submit']['#hook'] = 'entity_stages';
       }
     }
   }

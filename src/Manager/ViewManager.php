@@ -95,7 +95,7 @@ class ViewManager {
 
         // Link structures.
         $linksStructure['publish'] = [
-          'target' => 'normal',
+          'target' => '_self',
           'enabled' => $conditionCurrentPublished,
           'label' => t('Publish'),
           'url' => $publishButton,
@@ -107,25 +107,25 @@ class ViewManager {
           'url' => $urlCompare,
         ];
         $linksStructure['view'] = [
-          'target' => 'normal',
+          'target' => '_self',
           'enabled' => 1,
           'label' => t('View'),
           'url' => $pageUrl,
         ];
         $linksStructure['edit'] = [
-          'target' => 'normal',
+          'target' => '_self',
           'enabled' => 1,
           'label' => t('Edit'),
           'url' => $editPageUrl,
         ];
         $linksStructure['accept'] = [
-          'target' => 'normal',
+          'target' => '_self',
           'enabled' => !$conditionCurrentPublished,
           'label' => t('Accept'),
           'url' => $acceptRevision . $contentModerationPage,
         ];
         $linksStructure['reject'] = [
-          'target' => 'normal',
+          'target' => '_self',
           'enabled' => !$conditionCurrentPublished,
           'label' => t('Reject'),
           'url' => $refuserRevision . $contentModerationPage,
@@ -165,7 +165,7 @@ class ViewManager {
           !$result->_entity ||
           $entityStagesService->isRevisionModerated($result->_entity->vid->value)
         ) {
-          // unset($view->result[$index]);.
+          // Post executed conditions here.
         }
       }
     }
@@ -283,7 +283,10 @@ class ViewManager {
     $query->leftJoin(
       'node_field_data',
       'nfd',
-      'nfr.nid = nfd.nid AND nfr.vid != nfd.vid AND nfr.changed > nfd.changed'
+      ' nfr.nid = nfd.nid AND
+        nfr.vid != nfd.vid AND
+        nfr.vid > nfd.vid
+      '
     );
     // Fields.
     // -- Node field Data.
@@ -296,17 +299,14 @@ class ViewManager {
     // -- Node Field Revision.
     $query->addField('nfr', 'title', 'nfr_title');
     $query->addField('nfr', 'nid', 'nfr_nid');
+    $query->addField('nfr', 'entity_stages_revision_status', 'nfr_entity_stages_revision_status');
     $query->addField('nfr', 'vid', 'nfr_vid');
     // Conditions.
     $query->condition('nr.revision_uid', $entity_ids, 'NOT IN');
     $query->condition('nr.langcode', $langcode);
     $query->condition('nfr.langcode', $langcode);
     $query->condition('nfd.langcode', $langcode);
-    $query->condition(
-      db_or()
-        ->condition('nfr.entity_stages_revision_status', NULL, 'IS NULL')
-        ->condition('nfr.entity_stages_revision_status', '4')
-    );
+    $query->condition('nfr.entity_stages_revision_status', 0);
     // Order by.
     $query->orderBy('nr.revision_timestamp', 'DESC');
     // Execute and fetch results.
@@ -320,7 +320,7 @@ class ViewManager {
     }
     // Array values;.
     $trueVid = array_values($trueVid);
-
+    // Return revisions.
     return $trueVid;
   }
 
@@ -330,5 +330,4 @@ class ViewManager {
   public function _viewsDataAlter(array &$data) {
     $data['node_field_revision']['type'] = $data['node_field_data']['type'];
   }
-
 }
