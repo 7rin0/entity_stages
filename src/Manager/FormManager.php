@@ -25,7 +25,10 @@ class FormManager {
 
     // Update submit button if we are about to made a registration.
     // Current User.
-    if ($form_state->getBuildInfo()['base_form_id'] == 'node_form') {
+    if (
+      isset($form_state->getBuildInfo()['base_form_id']) &&
+      $form_state->getBuildInfo()['base_form_id'] == 'node_form'
+      ) {
 
       // Get Node Type.
       $nodeType = str_replace('node_', '', str_replace(['_edit_form', '_form'], '', $form['#form_id']));
