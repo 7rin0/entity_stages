@@ -64,9 +64,11 @@ class ElementManager {
 
     // Parse each existing tab.
     $existingTabs = [];
-    foreach ($data['tabs'][0] as $task_route => $value) {
-      $routeName = $value['#link']['url']->getRouteName();
-      $existingTabs[$routeName] = $value;
+    if(isset($data['tabs'][0])) {
+      foreach ($data['tabs'][0] as $task_route => $value) {
+        $routeName = $value['#link']['url']->getRouteName();
+        $existingTabs[$routeName] = $value;
+      }
     }
 
     $nodeDefaultTasksRouteNames['view.entity_stages.default_page'] = 'view.entity_stages.default_page';
