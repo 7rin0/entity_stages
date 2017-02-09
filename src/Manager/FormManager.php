@@ -22,7 +22,7 @@ class FormManager {
       $form['#after_build'][] = 'Drupal\entity_stages\Manager\FormManager::_redirect_to_moderation_entity_stages_page';
       $form['#submit'][] = 'Drupal\entity_stages\Manager\FormManager::_redirect_to_moderation_entity_stages_page';
     }
-    
+
     // Update submit button if we are about to made a registration.
     // Current User.
     if (

@@ -64,7 +64,7 @@ class ElementManager {
 
     // Parse each existing tab.
     $existingTabs = [];
-    if(isset($data['tabs'][0])) {
+    if (isset($data['tabs'][0])) {
       foreach ($data['tabs'][0] as $task_route => $value) {
         $routeName = $value['#link']['url']->getRouteName();
         $existingTabs[$routeName] = $value;

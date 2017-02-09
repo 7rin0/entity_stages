@@ -330,4 +330,5 @@ class ViewManager {
   public function _viewsDataAlter(array &$data) {
     $data['node_field_revision']['type'] = $data['node_field_data']['type'];
   }
+
 }
