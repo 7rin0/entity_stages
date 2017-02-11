@@ -185,7 +185,7 @@ class ViewManager {
 
       // Request.
       $getType = $getRequest->get('type');
-      $getNid = $getRequest->get('nid');
+      $getNid = (int) $getRequest->get('nid');
       $getOrder = $getRequest->get('order');
 
       // Update query definitions.
@@ -257,11 +257,32 @@ class ViewManager {
       $query->addRelationship('nfd', $join, 'node_field_data');
 
       // Add condition based on allowed revisions.
-      $query->where[1]['conditions'][] = [
-        'field' => 'node_field_revision.vid',
-        'value' => $this->getPendingRevisions(),
-        'operator' => 'IN',
+      $query->where[] = [
+        'conditions' => [
+          [
+            'field' => 'node_field_revision.vid',
+            'value' => $this->getPendingRevisions(),
+            'operator' => 'IN',
+          ]
+        ],
+        'args' => [],
+        'type' => "AND",
       ];
+
+      // Filter by nid if defined.
+      if ($getNid) {
+        $query->where[] = [
+          'conditions' => [
+            [
+              'field' => 'node_field_revision.nid',
+              'value' => $getNid,
+              'operator' => '=',
+            ]
+          ],
+          'args' => [],
+          'type' => "AND",
+        ];
+      }
     }
   }
 
