@@ -5,7 +5,7 @@ entity_stages.default.routing:
     _title: 'Entity Stages - Administration'
     _controller: '\Drupal\entity_stages\Controller\EntityStagesController::indexAction'
   requirements:
-    _permission: 'administer'
+    _permission: 'administer entity stages'
 
 # Publish a content to be reviewed.
 entity_stages.publish.content:
@@ -14,7 +14,7 @@ entity_stages.publish.content:
     _title: 'Entity Stages - Publish Content'
     _controller: '\Drupal\entity_stages\Controller\EntityStagesController::publishAction'
   requirements:
-    _permission: 'administer'
+    _permission: 'administer entity stages'
 
 # Accept revision to be reviewed.
 entity_stages.accept.content:
@@ -23,7 +23,7 @@ entity_stages.accept.content:
     _title: 'Entity Stages - Accept Modification'
     _controller: '\Drupal\entity_stages\Controller\EntityStagesController::acceptAction'
   requirements:
-    _permission: 'administer'
+    _permission: 'administer entity stages'
 
 # Reject revision to be reviewed.
 entity_stages.reject.content:
@@ -32,4 +32,4 @@ entity_stages.reject.content:
     _title: 'Entity Stages - Reject Modification'
     _controller: '\Drupal\entity_stages\Controller\EntityStagesController::rejectAction'
   requirements:
-    _permission: 'administer'
+    _permission: 'administer entity stages'
